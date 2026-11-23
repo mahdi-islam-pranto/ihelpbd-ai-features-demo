@@ -1,0 +1,71 @@
+{% from "partials/icons.html" import icon %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}{{ app_name }}{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
+  <script>try { if (localStorage.getItem("sidebar") === "collapsed") document.documentElement.classList.add("sb-collapsed"); } catch (e) {}</script>
+</head>
+<body>
+<div class="shell">
+
+  <aside class="sidebar" id="sidebar">
+    <a href="/" class="brand">
+      <span class="brand-mark">{{ icon("sparkles", 16) }}</span>
+      <span class="brand-text">{{ app_name }}</span>
+    </a>
+
+    <nav class="side-nav">
+      <a href="/" class="side-link {% if active == 'home' %}active{% endif %}">
+        {{ icon("grid", 16) }}<span>Overview</span>
+      </a>
+
+      {% for category, items in features_by_category().items() %}
+      <div class="side-section">{{ category }}</div>
+      {% for f in items %}
+      <a href="/features/{{ f.slug }}" class="side-link {% if active == f.slug %}active{% endif %}" title="{{ f.name }}">
+        {{ icon(f.icon, 16) }}<span>{{ f.name }}</span>
+        <i class="status-dot {{ f.mode }}" title="{{ 'Live API' if f.is_live else 'Demo data' }}"></i>
+      </a>
+      {% endfor %}
+      {% endfor %}
+    </nav>
+
+    <div class="side-foot">
+      {% set live = features|selectattr("is_live")|list|length %}
+      <div class="side-foot-row" title="Live APIs"><i class="status-dot live"></i><span>{{ live }} live API{{ '' if live == 1 else 's' }}</span></div>
+      <div class="side-foot-row" title="On demo data"><i class="status-dot demo"></i><span>{{ features|length - live }} on demo data</span></div>
+    </div>
+  </aside>
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn burger" id="burger" aria-label="Toggle sidebar" title="Toggle sidebar">{{ icon("sidebar", 16) }}</button>
+      <nav class="crumbs">
+        <a href="/">{{ company_name }} AI</a>
+        {% block crumbs %}{% endblock %}
+      </nav>
+      <div class="topbar-right">
+        <a href="/api/docs" target="_blank" class="topbar-link">{{ icon("code", 14) }} Platform API</a>
+      </div>
+    </header>
+
+    <main class="content">
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer class="foot">© {{ company_name }}. AI Features Demo Portal</footer>
+  </div>
+</div>
+
+<div class="toast-stack" id="toastStack"></div>
+<script src="{{ url_for('static', path='js/app.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

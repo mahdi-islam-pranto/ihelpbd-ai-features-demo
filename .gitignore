@@ -1,0 +1,7 @@
+.env
+.env.example
+# ignore the api_docs folder
+api_docs/
+.venv/
+sample-call-recordings/
+sample-crm-datas/

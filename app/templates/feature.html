@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% from "partials/icons.html" import icon %}
+{% block title %}{{ feature.name }} | {{ app_name }}{% endblock %}
+{% block crumbs %}<span class="sep">/</span><span class="muted">{{ feature.category }}</span><span class="sep">/</span><span>{{ feature.name }}</span>{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div class="page-head-main">
+    <span class="head-icon">{{ icon(feature.icon, 20) }}</span>
+    <div>
+      <h1>{{ feature.name }} <span class="badge badge-{{ feature.mode }}">{{ 'Live API' if feature.is_live else 'Demo data' }}</span></h1>
+      <p class="muted">{{ feature.tagline }}</p>
+    </div>
+  </div>
+</div>
+
+<div class="workspace" id="demoApp"
+     data-feature="{{ feature.slug }}"
+     data-file-kind="{{ feature.file_kind or '' }}"
+     data-file-required="{{ 'true' if feature.file_required else 'false' }}"
+     data-mode="{{ feature.mode }}"
+     data-steps='{{ feature.processing_steps|tojson }}'>
+
+  <div class="ws-left">
+    <div class="card">
+      <div class="card-head"><h3>{{ icon("upload", 14) }} Input</h3></div>
+      {% include "inputs/panel.html" %}
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>{{ icon("info", 14) }} About this feature</h3></div>
+      <p class="small">{{ feature.description }}</p>
+      <div class="sub-title">Capabilities</div>
+      <ul class="ticks">{% for h in feature.highlights %}<li>{{ icon("check", 12) }} {{ h }}</li>{% endfor %}</ul>
+      <div class="sub-title">How it works</div>
+      <ol class="steps">{% for s in feature.steps %}<li>{{ s }}</li>{% endfor %}</ol>
+      <div class="sub-title">Where it helps</div>
+      {% for u in feature.use_cases %}
+      <div class="usecase"><strong>{{ u.title }}</strong><span class="muted">{{ u.text }}</span></div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card ws-right" id="resultPanel">
+    <div class="result-empty" id="resultEmpty">
+      <span class="empty-icon">{{ icon(feature.icon, 26) }}</span>
+      <strong>No results yet</strong>
+      <p class="muted">Provide the input on the left and click <b>{{ feature.run_label }}</b>.</p>
+    </div>
+    <div class="result-loading hidden" id="resultLoading">
+      <div class="spinner"></div>
+      <strong>Processing…</strong>
+      <ul class="progress-steps" id="progressSteps"></ul>
+    </div>
+    <div class="result-body hidden" id="resultBody"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', path='js/player.js') }}"></script>
+<script src="{{ url_for('static', path='js/renderers.js') }}"></script>
+<script src="{{ url_for('static', path='js/feature.js') }}"></script>
+{% endblock %}

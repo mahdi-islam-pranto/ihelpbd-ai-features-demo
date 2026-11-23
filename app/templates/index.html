@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% from "partials/icons.html" import icon %}
+{% block title %}Overview | {{ app_name }}{% endblock %}
+{% block crumbs %}<span class="sep">/</span><span>Overview</span>{% endblock %}
+
+{% block content %}
+{% set live = features|selectattr("is_live")|list|length %}
+<div class="page-head">
+  <div>
+    <h1>AI Features Overview</h1>
+    <p class="muted">Try {{ company_name }}'s AI features on sample data. Open a feature from the sidebar or the list below.</p>
+  </div>
+</div>
+
+<div class="stat-grid">
+  <div class="stat"><span class="stat-icon blue">{{ icon("sparkles", 16) }}</span><div><small>AI features</small><strong>{{ features|length }}</strong></div></div>
+  <div class="stat"><span class="stat-icon green">{{ icon("zap", 16) }}</span><div><small>Live APIs</small><strong>{{ live }}</strong></div></div>
+  <div class="stat"><span class="stat-icon red">{{ icon("flask", 16) }}</span><div><small>On demo data</small><strong>{{ features|length - live }}</strong></div></div>
+  <div class="stat"><span class="stat-icon blue">{{ icon("grid", 16) }}</span><div><small>Categories</small><strong>{{ features_by_category()|length }}</strong></div></div>
+</div>
+
+<div class="card">
+  <div class="card-head"><h3>AI Features</h3></div>
+  <div class="table-wrap">
+    <table class="data">
+      <thead><tr><th>Feature</th><th>Category</th><th>Input</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+      {% for f in features %}
+        <tr class="row-link" data-href="/features/{{ f.slug }}">
+          <td>
+            <div class="feat-cell">
+              <span class="feat-icon">{{ icon(f.icon, 16) }}</span>
+              <div><a href="/features/{{ f.slug }}" class="strong">{{ f.name }}</a><div class="muted">{{ f.tagline }}</div></div>
+            </div>
+          </td>
+          <td><span class="tag">{{ f.category }}</span></td>
+          <td class="muted nowrap">{{ {"recordings": "Call recording", "crm": "CRM data / form"}.get(f.file_kind, "Form") }}</td>
+          <td><span class="badge badge-{{ f.mode }}">{{ 'Live API' if f.is_live else 'Demo data' }}</span></td>
+          <td class="right"><a href="/features/{{ f.slug }}" class="btn btn-sm btn-outline">Open {{ icon("arrow-right", 12) }}</a></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="grid-3">
+  <div class="card mini"><span class="step-n">1</span><div><strong>Pick a feature</strong><p class="muted">Choose an AI feature from the sidebar.</p></div></div>
+  <div class="card mini"><span class="step-n">2</span><div><strong>Provide input</strong><p class="muted">Upload your own file or pick a sample.</p></div></div>
+  <div class="card mini"><span class="step-n">3</span><div><strong>Review results</strong><p class="muted">See the structured AI output and export it as JSON.</p></div></div>
+</div>
+{% endblock %}

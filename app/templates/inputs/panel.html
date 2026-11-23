@@ -1,0 +1,61 @@
+{% from "partials/icons.html" import icon %}
+{# Generic input panel: optional file input + form fields from the feature registry #}
+
+{% if feature.file_kind %}
+{% set is_audio = feature.file_kind == "recordings" %}
+<div class="field-label">{{ "Call recording" if is_audio else "CRM data" }}{% if feature.file_required %} <span class="req">*</span>{% else %} <span class="muted">(optional)</span>{% endif %}</div>
+<label class="dropzone" id="dropzone">
+  <input type="file" id="fileInput" hidden
+         accept="{{ 'audio/*,.mp3,.wav,.m4a,.ogg,.flac,.webm,.aac' if is_audio else '.csv,.xlsx,.xls,.json' }}">
+  {{ icon("upload", 18) }}
+  <span><b>Click to upload</b> or drag &amp; drop<br><small class="muted">{{ "MP3, WAV, OGG, M4A, FLAC" if is_audio else "CSV, XLSX, JSON" }} · max 100 MB</small></span>
+</label>
+
+<div class="sample-list" id="sampleList" data-kind="{{ feature.file_kind }}">
+  <span class="muted small">Loading samples…</span>
+</div>
+
+<div class="selected-file hidden" id="selectedFile">
+  <div class="selected-meta">
+    <span class="file-chip">{{ icon("file", 14) }} <span id="selectedName"></span></span>
+    <button type="button" class="icon-btn sm" id="clearFile" title="Remove">{{ icon("x", 12) }}</button>
+  </div>
+  {% if is_audio %}
+  <div class="player hidden" id="player">
+    <audio preload="metadata"></audio>
+    <button type="button" class="play-btn" data-play aria-label="Play / pause">
+      <span class="i-play">{{ icon("play", 13) }}</span><span class="i-pause">{{ icon("pause", 13) }}</span>
+    </button>
+    <div class="player-main">
+      <div class="wave" data-wave title="Click to seek"></div>
+      <div class="player-time" data-time>0:00 / 0:00</div>
+    </div>
+    <button type="button" class="speed-btn" data-speed title="Playback speed">1x</button>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+{% if feature.form_fields %}
+<form id="inputForm" class="form-grid" onsubmit="return false">
+  {% for f in feature.form_fields %}
+  <label class="field {% if f.full or f.type == 'textarea' %}full{% endif %}">
+    <span>{{ f.label }}{% if f.required %} <span class="req">*</span>{% endif %}</span>
+    {% if f.type == "select" %}
+    <select name="{{ f.name }}" {% if f.required %}required{% endif %}>
+      {% for value, label in f.options %}
+      <option value="{{ value }}" {% if value == f.get('default', '') %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    {% elif f.type == "textarea" %}
+    <textarea name="{{ f.name }}" rows="2" placeholder="{{ f.placeholder or '' }}"></textarea>
+    {% else %}
+    <input type="text" name="{{ f.name }}" placeholder="{{ f.placeholder or '' }}" {% if f.required %}required{% endif %}>
+    {% endif %}
+    {% if f.help %}<small class="muted">{{ f.help }}</small>{% endif %}
+  </label>
+  {% endfor %}
+</form>
+{% endif %}
+
+<button class="btn btn-primary btn-block" id="runBtn">{{ icon("play", 12) }} {{ feature.run_label }}</button>

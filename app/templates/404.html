@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% from "partials/icons.html" import icon %}
+{% block title %}Not found | {{ app_name }}{% endblock %}
+{% block content %}
+<div class="card center" style="padding:48px 20px">
+  <h1 style="font-size:40px;color:var(--red)">404</h1>
+  <p class="muted">The page you are looking for doesn't exist.</p>
+  <a href="/" class="btn btn-primary">{{ icon("arrow-left", 12) }} Back to overview</a>
+</div>
+{% endblock %}

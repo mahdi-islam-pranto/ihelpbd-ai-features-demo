@@ -1,0 +1,118 @@
+"""
+Bridge between the demo platform and the deployed AI APIs.
+
+Each feature has its own adapter so we can match the exact request/response
+contract of every API (documented in /api_docs). Until an API URL is
+configured in .env the feature falls back to mock data (demo mode).
+"""
+import time
+from dataclasses import dataclass
+
+import httpx
+
+from app.config import API_TIMEOUT
+from app.features import Feature
+from app.services import mock_data
+
+
+@dataclass
+class RunInput:
+    params: dict
+    file_bytes: bytes | None = None
+    filename: str | None = None
+    content_type: str | None = None
+
+
+class UpstreamError(Exception):
+    def __init__(self, message: str, status_code: int = 502):
+        super().__init__(message)
+        self.status_code = status_code
+
+
+def _headers(feature: Feature) -> dict:
+    key = feature.api["key"]
+    return {"Authorization": f"Bearer {key}"} if key else {}
+
+
+def _clean(params: dict, allowed: list[str]) -> dict:
+    """Keep only known fields and drop empty optional values."""
+    return {k: str(v).strip() for k, v in params.items()
+            if k in allowed and v is not None and str(v).strip() != ""}
+
+
+def _upstream_error(feature: Feature, resp: httpx.Response) -> UpstreamError:
+    detail = resp.text[:400]
+    try:
+        body = resp.json()
+        if isinstance(body, dict) and "detail" in body:
+            d = body["detail"]
+            if isinstance(d, list):  # FastAPI validation errors
+                detail = "; ".join(f"{'.'.join(map(str, e.get('loc', [])))}: {e.get('msg')}" for e in d)
+            else:
+                detail = str(d)
+    except ValueError:
+        pass
+    status = 400 if resp.status_code == 422 else 502
+    return UpstreamError(f"{feature.name} API error ({resp.status_code}): {detail}", status)
+
+
+async def _post(feature: Feature, data: dict, files: dict | None) -> dict:
+    async with httpx.AsyncClient(timeout=API_TIMEOUT) as client:
+        resp = await client.post(feature.api["url"], data=data, files=files, headers=_headers(feature))
+    if resp.status_code >= 400:
+        raise _upstream_error(feature, resp)
+    try:
+        return resp.json()
+    except ValueError:
+        raise UpstreamError(f"{feature.name} API returned a non-JSON response")
+
+
+# ---------------------------------------------------------------- adapters
+
+async def _call_analysis(feature: Feature, inp: RunInput) -> dict:
+    """POST /analyze-call  (see api_docs/recording_analysis.md)"""
+    fields = ["language", "agent_name", "customer_name", "call_direction",
+              "deal_or_lead_id", "product_or_service"]
+    data = _clean(inp.params, fields)
+    data.setdefault("language", "en")
+    files = {"audio_file": (inp.filename or "recording", inp.file_bytes,
+                            inp.content_type or "application/octet-stream")}
+    return await _post(feature, data, files)
+
+
+async def _generic(feature: Feature, inp: RunInput) -> dict:
+    """Fallback for features whose contract isn't wired up yet."""
+    files = None
+    if inp.file_bytes is not None:
+        files = {"file": (inp.filename or "upload", inp.file_bytes,
+                          inp.content_type or "application/octet-stream")}
+    return await _post(feature, inp.params, files)
+
+
+ADAPTERS = {
+    "call-recording-analysis": _call_analysis,
+}
+
+
+async def run_feature(feature: Feature, inp: RunInput) -> dict:
+    started = time.perf_counter()
+    if feature.is_live:
+        adapter = ADAPTERS.get(feature.slug, _generic)
+        try:
+            result = await adapter(feature, inp)
+        except httpx.TimeoutException as exc:
+            raise UpstreamError(f"{feature.name} API timed out after {API_TIMEOUT:.0f}s", 504) from exc
+        except httpx.HTTPError as exc:
+            raise UpstreamError(f"Could not reach {feature.name} API: {exc}") from exc
+        mode = "live"
+    else:
+        result = await mock_data.generate(feature.slug, inp.params, inp.filename)
+        mode = "demo"
+
+    return {
+        "feature": feature.slug,
+        "mode": mode,
+        "elapsed_ms": int((time.perf_counter() - started) * 1000),
+        "input": {"file": inp.filename, **{k: v for k, v in inp.params.items() if v not in (None, "")}},
+        "data": result,
+    }
