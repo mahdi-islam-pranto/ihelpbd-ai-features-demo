@@ -693,3 +693,55 @@ mark.kw.hl { background: #fff1c7; border-bottom-color: #e6b94a; border-radius: 3
   .ca-stats { grid-template-columns: 1fr 1fr; }
   .token-grid { grid-template-columns: 1fr 1fr; }
 }
+
+/* =========================================================
+   Saved results (history)
+   ========================================================= */
+.count-pill:not(:empty) {
+  font-size: 10.5px; font-weight: 600; padding: 1px 7px; border-radius: 999px;
+  background: var(--blue-50); color: var(--blue-600); border: 1px solid var(--blue-100);
+}
+.hist-search { width: 100%; margin-bottom: 10px; }
+.hist-list { display: grid; gap: 6px; max-height: 420px; overflow-y: auto; margin: 0 -4px; padding: 0 4px 2px; }
+.hist-item {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 9px; align-items: start;
+  padding: 9px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface);
+  cursor: pointer; transition: border-color .12s, background .12s, box-shadow .12s;
+}
+.hist-item:hover { border-color: var(--blue-100); background: var(--surface-2); }
+.hist-item:focus-visible { outline: 2px solid var(--blue); outline-offset: 1px; }
+.hist-item.active { border-color: var(--blue); background: var(--blue-50); box-shadow: inset 3px 0 0 var(--blue); }
+.hist-ico {
+  display: grid; place-items: center; width: 26px; height: 26px; border-radius: 7px;
+  background: var(--blue-50); color: var(--blue); margin-top: 1px;
+}
+.hist-item.active .hist-ico { background: var(--blue); color: #fff; }
+.hist-main { min-width: 0; display: grid; gap: 3px; }
+.hist-title { font-weight: 600; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hist-sub {
+  font-size: 11.5px; color: var(--text-2); line-height: 1.35;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.hist-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin-top: 2px; }
+.hist-meta .tag { font-size: 10.5px; padding: 0 6px; line-height: 17px; }
+.hist-meta .status-dot { box-shadow: none; }
+.hist-time { color: var(--muted); font-size: 10.5px; margin-left: auto; white-space: nowrap; }
+.hist-del { opacity: 0; transition: opacity .12s; }
+.hist-item:hover .hist-del, .hist-item.active .hist-del, .hist-del:focus-visible { opacity: 1; }
+.hist-del:hover { color: var(--red); border-color: var(--red-100); background: var(--red-50); }
+@media (hover: none) { .hist-del { opacity: 1; } }
+.hist-note { padding: 14px 4px; text-align: center; }
+.hist-off {
+  display: flex; gap: 9px; padding: 10px 12px; border-radius: var(--radius-sm);
+  background: var(--red-50); border: 1px solid var(--red-100); color: #a83f3f; font-size: 11.5px;
+}
+.hist-off .icon { flex-shrink: 0; margin-top: 1px; }
+.hist-off div { display: grid; gap: 3px; }
+.hist-off span { color: var(--text-2); }
+#historyMore { margin-top: 8px; }
+
+.saved-pill {
+  display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600;
+  background: var(--green-50); color: #237a52; border: 1px solid #cdeedd;
+}
+.saved-pill.warn { background: var(--red-50); color: #b84848; border-color: var(--red-100); }

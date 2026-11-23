@@ -19,6 +19,7 @@
      data-file-kind="{{ feature.file_kind or '' }}"
      data-file-required="{{ 'true' if feature.file_required else 'false' }}"
      data-mode="{{ feature.mode }}"
+     data-history="{{ 'true' if history_enabled else 'false' }}"
      data-steps='{{ feature.processing_steps|tojson }}'>
 
   <div class="ws-left">
@@ -26,6 +27,18 @@
       <div class="card-head"><h3>{{ icon("upload", 14) }} Input</h3></div>
       {% include "inputs/panel.html" %}
     </div>
+
+    {% if history_enabled %}
+    <div class="card" id="historyCard">
+      <div class="card-head">
+        <h3>{{ icon("history", 14) }} Saved results <span class="count-pill" id="historyCount"></span></h3>
+        <button type="button" class="icon-btn sm" id="historyRefresh" title="Refresh">{{ icon("refresh", 12) }}</button>
+      </div>
+      <input type="search" class="input hist-search" id="historySearch" placeholder="Search file, agent, customer, lead…">
+      <div class="hist-list" id="historyList"><div class="hist-note muted small">Loading…</div></div>
+      <button type="button" class="btn btn-outline btn-sm btn-block hidden" id="historyMore">Load more</button>
+    </div>
+    {% endif %}
 
     <div class="card">
       <div class="card-head"><h3>{{ icon("info", 14) }} About this feature</h3></div>
@@ -49,7 +62,7 @@
     </div>
     <div class="result-loading hidden" id="resultLoading">
       <div class="spinner"></div>
-      <strong>Processing…</strong>
+      <strong id="loadingText">Processing…</strong>
       <ul class="progress-steps" id="progressSteps"></ul>
     </div>
     <div class="result-body hidden" id="resultBody"></div>

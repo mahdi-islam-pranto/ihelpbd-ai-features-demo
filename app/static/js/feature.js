@@ -9,6 +9,7 @@
   const fileRequired = app.dataset.fileRequired === "true";
   const isAudio = fileKind === "recordings";
   const steps = JSON.parse(app.dataset.steps || "[]");
+  const historyOn = app.dataset.history === "true";
 
   const $ = (id) => document.getElementById(id);
   const fileInput = $("fileInput"), dropzone = $("dropzone"), sampleList = $("sampleList");
@@ -17,11 +18,12 @@
   const audioPlayer = player?.audio || null, runBtn = $("runBtn"), form = $("inputForm");
   const els = { empty: $("resultEmpty"), loading: $("resultLoading"), body: $("resultBody"), steps: $("progressSteps") };
 
-  const state = { file: null, sample: null, objectUrl: null, busy: false };
+  // savedFile: a stored upload from a saved result ({url, name}) - fetched again on re-run
+  const state = { file: null, sample: null, savedFile: null, objectUrl: null, busy: false };
 
   // ---------- Input selection ----------
   function updateRunState() {
-    runBtn.disabled = state.busy || (fileRequired && !(state.file || state.sample));
+    runBtn.disabled = state.busy || (fileRequired && !(state.file || state.sample || state.savedFile));
   }
 
   function showSelected(name, src, source) {
@@ -35,6 +37,7 @@
   function clearSelection() {
     state.file = null;
     state.sample = null;
+    state.savedFile = null;
     if (state.objectUrl) URL.revokeObjectURL(state.objectUrl);
     state.objectUrl = null;
     if (fileInput) fileInput.value = "";
@@ -141,11 +144,23 @@
     const params = form ? Object.fromEntries(new FormData(form).entries()) : {};
     const fd = new FormData();
     fd.append("params", JSON.stringify(params));
-    if (state.file) fd.append("file", state.file);
-    else if (state.sample) { fd.append("sample", state.sample); fd.append("sample_kind", fileKind); }
 
     state.busy = true;
     updateRunState();
+    if (state.file) fd.append("file", state.file);
+    else if (state.sample) { fd.append("sample", state.sample); fd.append("sample_kind", fileKind); }
+    else if (state.savedFile) {
+      // re-running a saved result: fetch its stored recording again
+      try {
+        const blob = await (await fetch(state.savedFile.url)).blob();
+        fd.append("file", new File([blob], state.savedFile.name, { type: blob.type }));
+      } catch {
+        state.busy = false; updateRunState();
+        return UI.toast("Could not load the saved recording", "error");
+      }
+    }
+
+    $("loadingText").textContent = "Processing…";
     setView("loading");
     startProgress();
     if (window.innerWidth < 1100) $("resultPanel").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -156,6 +171,12 @@
       if (!res.ok) throw new Error(payload.detail || `Request failed (${res.status})`);
       stopProgress();
       renderResult(payload);
+      if (payload.run_id) {
+        setRunParam(payload.run_id);
+        loadHistory();
+      } else if (payload.history_error) {
+        UI.toast(`Result not saved: ${payload.history_error}`, "error");
+      }
     } catch (err) {
       stopProgress();
       els.body.innerHTML = `<div class="alert-error"><b>Request failed.</b> ${UI.esc(err.message)}</div>`;
@@ -207,6 +228,8 @@
         <div class="result-meta">
           <span class="badge badge-${payload.mode}">${payload.mode === "live" ? "Live API" : "Demo data"}</span>
           <span title="Processing time">${UI.icon("clock", 12)} ${(payload.elapsed_ms / 1000).toFixed(1)}s</span>
+          ${payload.run_id ? `<span class="saved-pill" title="Saved ${UI.esc(UI.fmtDate(payload.created_at))}">${UI.icon("check", 11)} Saved #${payload.run_id}</span>` : ""}
+          ${payload.history_error ? `<span class="saved-pill warn" title="${UI.esc(payload.history_error)}">${UI.icon("alert", 11)} Not saved</span>` : ""}
           <button class="icon-btn sm" data-act="copy" title="Copy JSON">${UI.icon("copy", 12)}</button>
           <button class="icon-btn sm" data-act="download" title="Download JSON">${UI.icon("download", 12)}</button>
         </div>
@@ -237,6 +260,147 @@
     animateIn(els.body);
   }
 
-  loadSamples();
+  // ---------- Saved results (history) ----------
+  const H = { list: $("historyList"), more: $("historyMore"), search: $("historySearch"), count: $("historyCount") };
+  const hist = { offset: 0, limit: 15, q: "", activeId: null, req: 0 };
+
+  function setRunParam(id) {
+    hist.activeId = id ? String(id) : null;
+    const url = new URL(location.href);
+    if (id) url.searchParams.set("run", id); else url.searchParams.delete("run");
+    window.history.replaceState(null, "", url);
+    markActive();
+  }
+
+  function markActive() {
+    H.list?.querySelectorAll(".hist-item").forEach((el) => el.classList.toggle("active", el.dataset.id === hist.activeId));
+  }
+
+  function histItem(it) {
+    const tags = (it.tags || []).map((t) => `<span class="tag ${t.tone ? `tag-${t.tone}` : ""}">${UI.esc(t.text)}</span>`).join("");
+    const ico = it.source === "none" ? "sparkles" : isAudio ? "music" : "file";
+    return `
+      <div class="hist-item" data-id="${it.id}" role="button" tabindex="0">
+        <span class="hist-ico">${UI.icon(ico, 13)}</span>
+        <div class="hist-main">
+          <div class="hist-title" title="${UI.esc(it.title)}">${UI.esc(it.title)}</div>
+          ${it.subtitle ? `<div class="hist-sub" title="${UI.esc(it.subtitle)}">${UI.esc(it.subtitle)}</div>` : ""}
+          <div class="hist-meta">
+            <span class="status-dot ${it.mode}" title="${it.mode === "live" ? "Live API" : "Demo data"}"></span>
+            ${tags}
+            <span class="hist-time" title="${UI.esc(UI.fmtDate(it.created_at))}">#${it.id} · ${UI.esc(UI.ago(it.created_at))}</span>
+          </div>
+        </div>
+        <button type="button" class="icon-btn sm hist-del" data-del="${it.id}" title="Delete">${UI.icon("trash", 12)}</button>
+      </div>`;
+  }
+
+  async function loadHistory(append = false) {
+    if (!historyOn || !H.list) return;
+    const my = ++hist.req;
+    if (!append) hist.offset = 0;
+    try {
+      const qs = new URLSearchParams({ limit: hist.limit, offset: hist.offset, q: hist.q });
+      const res = await fetch(`/api/features/${slug}/history?${qs}`);
+      const data = await res.json();
+      if (my !== hist.req) return;                       // a newer request is running
+      if (!res.ok) throw new Error(data.detail || `Error ${res.status}`);
+      if (!data.enabled) {
+        H.count.textContent = "";
+        H.more.classList.add("hidden");
+        H.list.innerHTML = `<div class="hist-off">${UI.icon("alert", 14)}<div><b>Saving is off: database not connected</b>
+          <span>${UI.esc(data.error || "")}</span><span>Check the DB_* settings in <code>.env</code>; it reconnects automatically.</span></div></div>`;
+        return;
+      }
+      const html = data.items.map(histItem).join("");
+      if (append) H.list.insertAdjacentHTML("beforeend", html);
+      else H.list.innerHTML = html || `<div class="hist-note muted small">${hist.q ? "No saved results match your search." : "No saved results yet. Every analysis you run is saved here."}</div>`;
+      hist.offset += data.items.length;
+      H.count.textContent = data.total || "";
+      H.more.classList.toggle("hidden", hist.offset >= data.total);
+      markActive();
+    } catch (err) {
+      if (my === hist.req) H.list.innerHTML = `<div class="hist-note muted small">Could not load saved results: ${UI.esc(err.message)}</div>`;
+    }
+  }
+
+  // Put the saved inputs back into the panel so the run can be repeated.
+  function restoreInput(payload) {
+    clearSelection();
+    const input = payload.input || {};
+    if (form) {
+      form.reset();
+      [...form.elements].forEach((el) => { if (el.name && input[el.name] != null) el.value = input[el.name]; });
+    }
+    if (!input.file) return;
+    if (payload.source === "sample" && payload.file_url) {
+      state.sample = input.file;
+      sampleList?.querySelectorAll(".sample-chip").forEach((c) => c.classList.toggle("active", c.title === input.file));
+      showSelected(input.file, isAudio ? payload.file_url : null);
+    } else if (payload.file_url) {
+      state.savedFile = { url: payload.file_url, name: input.file };
+      showSelected(input.file, isAudio ? payload.file_url : null);
+    } else {
+      showSelected(`${input.file} (file not stored)`, null);
+    }
+  }
+
+  async function openRun(id) {
+    if (state.busy) return;
+    $("loadingText").textContent = "Loading saved result…";
+    els.steps.innerHTML = "";
+    setView("loading");
+    if (window.innerWidth < 1100) $("resultPanel").scrollIntoView({ behavior: "smooth", block: "start" });
+    try {
+      const res = await fetch(`/api/features/${slug}/history/${id}`);
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(payload.detail || `Error ${res.status}`);
+      restoreInput(payload);
+      renderResult(payload);
+      setRunParam(payload.run_id);
+    } catch (err) {
+      setRunParam(null);
+      setView("empty");
+      UI.toast(`Could not open saved result: ${err.message}`, "error");
+    }
+  }
+
+  async function deleteRun(id) {
+    if (!confirm(`Delete saved result #${id}? This cannot be undone.`)) return;
+    try {
+      const res = await fetch(`/api/features/${slug}/history/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || `Error ${res.status}`);
+      if (hist.activeId === String(id)) { setRunParam(null); setView("empty"); }
+      UI.toast(`Deleted result #${id}`, "success");
+      loadHistory();
+    } catch (err) {
+      UI.toast(`Delete failed: ${err.message}`, "error");
+    }
+  }
+
+  if (historyOn && H.list) {
+    H.list.addEventListener("click", (e) => {
+      const del = e.target.closest("[data-del]");
+      if (del) return deleteRun(del.dataset.del);
+      const item = e.target.closest(".hist-item");
+      if (item) openRun(item.dataset.id);
+    });
+    H.list.addEventListener("keydown", (e) => {
+      const item = e.target.closest(".hist-item");
+      if (item && (e.key === "Enter" || e.key === " ") && !e.target.closest("[data-del]")) { e.preventDefault(); openRun(item.dataset.id); }
+    });
+    H.more.addEventListener("click", () => loadHistory(true));
+    $("historyRefresh").addEventListener("click", () => loadHistory());
+    let t = null;
+    H.search.addEventListener("input", () => {
+      clearTimeout(t);
+      t = setTimeout(() => { hist.q = H.search.value.trim(); loadHistory(); }, 250);
+    });
+  }
+
+  // ---------- Init ----------
   updateRunState();
+  const initialRun = new URLSearchParams(location.search).get("run");
+  loadSamples().then(() => { if (historyOn && /^\d+$/.test(initialRun || "")) openRun(initialRun); });
+  loadHistory();
 })();

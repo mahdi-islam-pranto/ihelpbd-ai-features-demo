@@ -3,6 +3,7 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import HTMLResponse
 
 from app.features import FEATURES, FEATURES_BY_SLUG
+from app.services.history import supports as history_supported
 from app.templating import templates
 
 router = APIRouter()
@@ -22,6 +23,7 @@ async def feature_page(request: Request, slug: str):
     return templates.TemplateResponse(request, "feature.html", {
         "active": slug,
         "feature": feature,
+        "history_enabled": history_supported(slug),
         "prev_feature": FEATURES[idx - 1] if idx > 0 else None,
         "next_feature": FEATURES[idx + 1] if idx < len(FEATURES) - 1 else None,
     })
