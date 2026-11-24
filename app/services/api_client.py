@@ -21,6 +21,9 @@ class RunInput:
     file_bytes: bytes | None = None
     filename: str | None = None
     content_type: str | None = None
+    # batch features: several files [(name, bytes, content type)] or several links
+    files: list[tuple[str, bytes, str]] | None = None
+    urls: list[str] | None = None
 
 
 class UpstreamError(Exception):
@@ -56,7 +59,7 @@ def _upstream_error(feature: Feature, resp: httpx.Response) -> UpstreamError:
     return UpstreamError(f"{feature.name} API error ({resp.status_code}): {detail}", status)
 
 
-async def _post(feature: Feature, data: dict, files: dict | None) -> dict:
+async def _post(feature: Feature, data: dict, files: dict | list | None) -> dict:
     async with httpx.AsyncClient(timeout=API_TIMEOUT) as client:
         resp = await client.post(feature.api["url"], data=data, files=files, headers=_headers(feature))
     if resp.status_code >= 400:
@@ -80,6 +83,30 @@ async def _call_analysis(feature: Feature, inp: RunInput) -> dict:
     return await _post(feature, data, files)
 
 
+async def _transcribe(feature: Feature, inp: RunInput) -> dict:
+    """POST /transcribe  (see api_docs/call_transcription.md). Send audio_url OR audio_file."""
+    url = str(inp.params.get("audio_url") or "").strip()
+    if url:
+        # (None, value) = plain form field, keeps the request multipart/form-data
+        return await _post(feature, {}, {"audio_url": (None, url)})
+    files = {"audio_file": (inp.filename or "recording", inp.file_bytes,
+                            inp.content_type or "application/octet-stream")}
+    return await _post(feature, {}, files)
+
+
+async def _find_leads(feature: Feature, inp: RunInput) -> dict:
+    """POST /find_leads  (see api_docs/lead_finder.md). Send files OR audio_urls."""
+    data = _clean(inp.params, ["lead_keywords", "business_context", "not_a_lead_criteria"])
+    # (None, value) = plain form field; a list allows the repeated "files" field
+    parts = [(k, (None, v)) for k, v in data.items()]
+    if inp.urls:
+        parts.append(("audio_urls", (None, "\n".join(inp.urls))))
+    else:
+        parts += [("files", (name, content, ctype or "application/octet-stream"))
+                  for name, content, ctype in inp.files or []]
+    return await _post(feature, {}, parts)
+
+
 async def _generic(feature: Feature, inp: RunInput) -> dict:
     """Fallback for features whose contract isn't wired up yet."""
     files = None
@@ -91,6 +118,8 @@ async def _generic(feature: Feature, inp: RunInput) -> dict:
 
 ADAPTERS = {
     "call-recording-analysis": _call_analysis,
+    "call-transcription": _transcribe,
+    "lead-finder": _find_leads,
 }
 
 
@@ -106,7 +135,8 @@ async def run_feature(feature: Feature, inp: RunInput) -> dict:
             raise UpstreamError(f"Could not reach {feature.name} API: {exc}") from exc
         mode = "live"
     else:
-        result = await mock_data.generate(feature.slug, inp.params, inp.filename)
+        names = inp.urls or [f[0] for f in inp.files or []] or None
+        result = await mock_data.generate(feature.slug, inp.params, inp.filename, names)
         mode = "demo"
 
     return {

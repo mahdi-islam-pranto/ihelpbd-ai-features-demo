@@ -4,7 +4,7 @@
  * Response contracts are documented in /api_docs. */
 (function () {
   "use strict";
-  const { esc, fmtTime, scoreColor, icon } = window.UI;
+  const { esc, scoreColor, icon } = window.UI;
 
   // ---------- Reusable pieces ----------
   const kpis = (items) => `<div class="kpi-grid">${items.map((k) =>
@@ -276,69 +276,452 @@
   };
 
   // ======================================================================
-  // Call Recording Transcript  (demo shape - update when API is shared)
+  // Call Transcription  (api_docs/call_transcription.md)
+  // A "studio" layout: dark deck with speaker lanes + live caption,
+  // chat-style conversation, per-speaker columns and an export desk.
   // ======================================================================
-  function transcriptHtml(segments) {
-    return `
-      <div class="tools-row">
-        <input type="search" class="input" placeholder="Search transcript…" data-search>
-        <button class="btn btn-sm btn-outline" data-copy-transcript>${icon("copy", 12)} Copy</button>
-        <button class="btn btn-sm btn-outline" data-dl-transcript>${icon("download", 12)} .txt</button>
-      </div>
-      <div class="transcript" data-transcript>
-        ${segments.map((s, i) => `
-          <div class="seg" data-i="${i}" data-start="${s.start}" data-end="${s.end}">
-            <time>${fmtTime(s.start)}</time>
-            <div><div class="who ${String(s.speaker).toLowerCase()}">${esc(s.speaker)}</div><p data-text>${esc(s.text)}</p></div>
-          </div>`).join("")}
-      </div>`;
+  const TX_SIZES = [12.5, 13.5, 15, 17];
+
+  const parseTs = (v) => {                       // "01:05" | "1:02:03" | 65 -> seconds
+    if (typeof v === "number") return Math.max(0, v);
+    const parts = String(v ?? "").trim().split(":").map(Number);
+    if (!parts.length || parts.some((n) => isNaN(n))) return 0;
+    return parts.reduce((acc, n) => acc * 60 + n, 0);
+  };
+  const clock = (sec) => {
+    sec = Math.max(0, Math.floor(Number(sec) || 0));
+    const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+    const p = (n) => String(n).padStart(2, "0");
+    return h ? `${h}:${p(m)}:${p(s)}` : `${p(m)}:${p(s)}`;
+  };
+  const srtTime = (sec) => {
+    const ms = Math.round(sec * 1000), p = (n, w = 2) => String(n).padStart(w, "0");
+    return `${p(Math.floor(ms / 3600000))}:${p(Math.floor(ms / 60000) % 60)}:${p(Math.floor(ms / 1000) % 60)},${p(ms % 1000, 3)}`;
+  };
+  const wordCount = (t) => (String(t).trim().match(/\S+/g) || []).length;
+  const spkClass = (name) => {
+    const k = String(name).toLowerCase();
+    if (k.includes("agent")) return "a";
+    if (k.includes("customer") || k.includes("caller") || k.includes("client")) return "c";
+    return "o";
+  };
+  const shorten = (t, n = 110) => (t.length > n ? t.slice(0, n - 1) + "…" : t);
+
+  // Case-insensitive highlight that keeps combining marks (Bangla vowel signs) inside the match.
+  function markText(text, term) {
+    if (!term) return { html: esc(text), n: 0 };
+    const lower = text.toLowerCase(), q = term.toLowerCase();
+    let out = "", pos = 0, n = 0, at;
+    while ((at = lower.indexOf(q, pos)) !== -1) {
+      let end = at + q.length;
+      while (end < text.length && /\p{M}/u.test(text[end])) end++;
+      out += esc(text.slice(pos, at)) + `<mark class="tx-hit">${esc(text.slice(at, end))}</mark>`;
+      pos = end; n++;
+    }
+    return { html: out + esc(text.slice(pos)), n };
   }
 
-  function mountTranscript(root, segments, audio) {
-    const segEls = [...root.querySelectorAll(".seg")];
-    root.querySelector("[data-search]")?.addEventListener("input", (e) => {
-      const q = e.target.value.trim().toLowerCase();
-      segEls.forEach((el, i) => {
-        const text = segments[i].text, p = el.querySelector("[data-text]");
-        if (!q) { el.classList.remove("hidden"); p.innerHTML = esc(text); return; }
-        const hit = text.toLowerCase().includes(q);
-        el.classList.toggle("hidden", !hit);
-        if (hit) p.innerHTML = esc(text).replace(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi"), "<mark>$1</mark>");
-      });
+  Renderers["call-transcription"] = (d, ctx) => {
+    const segs = (Array.isArray(d.segments) ? d.segments : [])
+      .filter((s) => s && String(s.text ?? "").trim())
+      .map((s) => ({ speaker: String(s.speaker || "Speaker"), start: parseTs(s.start), text: String(s.text).trim() }));
+    const lastStart = segs.length ? segs[segs.length - 1].start : 0;
+    const duration = Math.max(Number(d.duration_seconds) || 0, lastStart + 2, 1);
+    segs.forEach((s, i) => {
+      const next = i < segs.length - 1 ? segs[i + 1].start : duration;
+      s.end = Math.max(next, s.start + 0.6);
+      s.words = wordCount(s.text);
     });
-    const txt = segments.map((s) => `[${fmtTime(s.start)}] ${s.speaker}: ${s.text}`).join("\n");
-    root.querySelector("[data-copy-transcript]")?.addEventListener("click", () => UI.copy(txt));
-    root.querySelector("[data-dl-transcript]")?.addEventListener("click", () => UI.download("transcript.txt", txt, "text/plain"));
-    if (audio && audio.src) {
-      segEls.forEach((el) => el.addEventListener("click", () => { audio.currentTime = +el.dataset.start; audio.play().catch(() => {}); }));
-      audio.ontimeupdate = () => {
-        const t = audio.currentTime;
-        segEls.forEach((el) => el.classList.toggle("playing", t >= +el.dataset.start && t < +el.dataset.end));
+
+    // speakers: Agent first, then Customer, then anyone else (in order of appearance)
+    const rank = (n) => ({ a: 0, c: 1 })[spkClass(n)] ?? 2;
+    const names = [...new Set(segs.map((s) => s.speaker))].sort((x, y) => rank(x) - rank(y));
+    const spk = names.map((name) => {
+      const mine = segs.filter((s) => s.speaker === name);
+      return {
+        name, cls: spkClass(name), lines: mine.length,
+        words: mine.reduce((a, s) => a + s.words, 0),
+        talk: mine.reduce((a, s) => a + (s.end - s.start), 0),
+      };
+    });
+    const spkIdx = Object.fromEntries(names.map((n, i) => [n, i]));
+    const totalTalk = spk.reduce((a, s) => a + s.talk, 0) || 1;
+    const totalWords = spk.reduce((a, s) => a + s.words, 0);
+    const turns = segs.filter((s, i) => i === 0 || segs[i - 1].speaker !== s.speaker).length;
+    const lang = /bangla|bengali|^bn\b/i.test(d.language || "") ? "bn" : "";
+    const L = lang ? ` lang="${lang}"` : "";
+    const inp = ctx.input || {};
+    const baseName = String(d.file_name || inp.file || (inp.audio_url || "").split("/").pop() || "call")
+      .replace(/\.[a-z0-9]{1,5}$/i, "").replace(/[^\wঀ-৿.-]+/g, "_").slice(0, 80) || "call";
+    const usage = d.usage || {};
+
+    if (!segs.length) {
+      return {
+        title: "Call transcript",
+        tabs: [{ id: "chat", label: "Conversation", icon: "chat",
+          html: `<div class="tx-empty">${icon("captions", 22)}<b>No speech was found in this recording.</b>
+            <span class="muted">The audio may be silent, too short or in a format the AI could not read.</span></div>` }],
       };
     }
-  }
 
-  Renderers["call-recording-transcript"] = (d, ctx) => {
-    const segs = d.segments || [];
-    const speakers = {};
-    segs.forEach((s) => { speakers[s.speaker] = (speakers[s.speaker] || 0) + (s.end - s.start); });
-    const total = Object.values(speakers).reduce((a, b) => a + b, 0) || 1;
-    const colors = ["#5b9bd5", "#e07a7a", "#7fb3e0", "#f0a5a5"];
+    // ---------------- header: the deck ----------------
+    const ticks = [0, 0.25, 0.5, 0.75, 1].map((k) =>
+      `<span style="left:${k * 100}%">${clock(k * duration)}</span>`).join("");
+    const lanes = spk.map((s) => `
+      <div class="tx-track spk-${s.cls}">
+        ${segs.map((g, i) => g.speaker !== s.name ? "" :
+          `<button type="button" class="tx-blk" data-seg="${i}" aria-label="${esc(clock(g.start))} ${esc(s.name)}"
+            style="left:${(g.start / duration) * 100}%;width:${((g.end - g.start) / duration) * 100}%"></button>`).join("")}
+      </div>`).join("");
+    const laneNames = spk.map((s) => `
+      <div class="tx-lane-name spk-${s.cls}"><i></i><span>${esc(s.name)}</span><b>${Math.round((s.talk / totalTalk) * 100)}%</b></div>`).join("");
+
+    const cell = (label, value, sub = "") =>
+      `<div class="tx-stat"><small>${label}</small><b>${value}</b>${sub ? `<span>${sub}</span>` : ""}</div>`;
+    const cost = usage.total_cost_usd;
+
+    const header = `
+      <div class="tx-deck" data-deck>
+        <div class="tx-deck-top">
+          <button type="button" class="tx-play" data-tx-play aria-label="Play / pause">
+            <span class="i-play">${icon("play", 15)}</span><span class="i-pause">${icon("pause", 15)}</span>
+          </button>
+          <div class="tx-clock"><b data-tx-now>00:00</b><span>/ ${clock(duration)}</span></div>
+          <div class="tx-deck-tags">
+            <span class="tx-pill">${icon("globe", 12)} ${esc(d.language || "Unknown language")}</span>
+            <span class="tx-pill">${icon("users", 12)} ${spk.length} speaker${spk.length === 1 ? "" : "s"}</span>
+          </div>
+          <label class="tx-follow" title="Keep the playing line in view">
+            <input type="checkbox" data-tx-follow checked><span class="tx-switch"></span>Follow along
+          </label>
+        </div>
+        <div class="tx-lanes">
+          <div class="tx-lane-names">${laneNames}</div>
+          <div class="tx-tracks-col">
+            <div class="tx-tracks" data-tx-tracks>
+              ${lanes}
+              <div class="tx-head" data-tx-head></div>
+              <div class="tx-tip" data-tx-tip></div>
+            </div>
+            <div class="tx-ticks">${ticks}</div>
+          </div>
+        </div>
+        <div class="tx-caption" data-tx-caption aria-live="polite"></div>
+        <div class="tx-noaudio-note hidden" data-tx-noaudio>${icon("alert", 12)} <span>No playable audio for this result. The timeline still shows who spoke when.</span></div>
+      </div>
+      <div class="tx-stats">
+        ${cell("Call length", clock(duration))}
+        ${cell("Speaker turns", turns, `${segs.length} lines`)}
+        ${cell("Words", totalWords.toLocaleString())}
+        ${cell("Transcribed in", d.processing_seconds != null ? `${Number(d.processing_seconds).toFixed(1)}s` : "-")}
+        ${cell("AI cost", cost != null ? `$${Number(cost).toFixed(4)}` : "-", usage.total_tokens ? `${usage.total_tokens.toLocaleString()} tokens` : "")}
+      </div>`;
+
+    // ---------------- tab: conversation ----------------
+    const chat = `
+      <div class="tx-tools">
+        <label class="tx-search">${icon("search", 13)}
+          <input type="search" placeholder="Search what was said…" data-tx-q aria-label="Search transcript">
+          <span class="tx-count" data-tx-count></span>
+          <button type="button" class="tx-nav" data-tx-prev title="Previous match (Shift+Enter)">${icon("up", 12)}</button>
+          <button type="button" class="tx-nav down" data-tx-next title="Next match (Enter)">${icon("up", 12)}</button>
+        </label>
+        <div class="tx-filters">${spk.map((s, i) =>
+          `<button type="button" class="tx-filter spk-${s.cls} on" data-tx-spk="${i}" title="Show / hide ${esc(s.name)}">
+            <i></i>${esc(s.name)}<small>${s.lines}</small></button>`).join("")}</div>
+        <div class="tx-size" role="group" aria-label="Text size">
+          <button type="button" data-tx-size="-1" title="Smaller text">A<sup>−</sup></button>
+          <button type="button" data-tx-size="1" title="Larger text">A<sup>+</sup></button>
+        </div>
+      </div>
+      <div class="tx-chat" data-tx-chat${L}>
+        ${segs.map((s, i) => {
+          const first = i === 0 || segs[i - 1].speaker !== s.speaker;
+          const cls = spkClass(s.speaker);
+          return `<div class="tx-msg spk-${cls} ${cls === "c" ? "right" : "left"} ${first ? "first" : ""}" data-i="${i}" data-spk="${spkIdx[s.speaker]}">
+            ${first ? `<div class="tx-who"><span class="tx-av">${esc(initials(s.speaker))}</span>${esc(s.speaker)}</div>` : ""}
+            <div class="tx-bubble">
+              <p data-tx-text>${esc(s.text)}</p>
+              <button type="button" class="tx-ts" data-seek="${i}" title="Play from here">${icon("play", 9)}${clock(s.start)}</button>
+            </div>
+          </div>`;
+        }).join("")}
+      </div>
+      <p class="tx-hint" data-tx-hint>${icon("play", 10)} Click any line to hear that moment of the call.</p>`;
+
+    // ---------------- tab: by speaker ----------------
+    const fallbackText = (name) => segs.filter((s) => s.speaker === name).map((s) => `[${clock(s.start)}] ${s.text}`).join("\n");
+    const speakerText = (name) => (d.transcript && typeof d.transcript[name.toLowerCase()] === "string" && d.transcript[name.toLowerCase()].trim())
+      || fallbackText(name);
+    const cols = `
+      <div class="tx-cols"${L}>
+        ${spk.map((s) => `
+          <div class="tx-col spk-${s.cls}">
+            <div class="tx-col-head">
+              <span class="tx-av lg">${esc(initials(s.name))}</span>
+              <div><b>${esc(s.name)}</b><small>${s.lines} lines · ${s.words.toLocaleString()} words · ${clock(s.talk)} talking</small></div>
+              <button type="button" class="icon-btn sm" data-copy="${esc(speakerText(s.name))}" title="Copy ${esc(s.name)}'s lines">${icon("copy", 12)}</button>
+            </div>
+            <div class="tx-share"><i data-w="${Math.round((s.talk / totalTalk) * 100)}%"></i><span>${Math.round((s.talk / totalTalk) * 100)}% of talk time</span></div>
+            <ol class="tx-lines">
+              ${segs.map((g, i) => g.speaker !== s.name ? "" :
+                `<li data-seek="${i}"><time>${clock(g.start)}</time><span>${esc(g.text)}</span></li>`).join("")}
+            </ol>
+          </div>`).join("")}
+      </div>`;
+
+    // ---------------- tab: export ----------------
+    const FORMATS = {
+      timestamped: { label: "Timestamped", ext: "txt", make: () => segs.map((s) => `[${clock(s.start)}] ${s.speaker}: ${s.text}`).join("\n") },
+      plain: { label: "Plain dialogue", ext: "txt", make: () => segs.map((s) => `${s.speaker}: ${s.text}`).join("\n") },
+      speaker: { label: "Per speaker", ext: "txt", make: () => spk.map((s) => `${s.name.toUpperCase()}\n${speakerText(s.name)}`).join("\n\n") },
+      srt: { label: "Subtitles (.srt)", ext: "srt", make: () => segs.map((s, i) =>
+        `${i + 1}\n${srtTime(s.start)} --> ${srtTime(s.end)}\n${s.speaker}: ${s.text}`).join("\n\n") + "\n" },
+    };
+    const exportHtml = `
+      <div class="tx-export">
+        <div class="tx-fmts" role="tablist">${Object.entries(FORMATS).map(([k, f], i) =>
+          `<button type="button" class="tx-fmt ${i ? "" : "active"}" data-fmt="${k}">${esc(f.label)}</button>`).join("")}</div>
+        <div class="tx-paper">
+          <div class="tx-paper-head">
+            <span>${icon("file", 12)} <b data-tx-fname></b></span>
+            <span class="muted" data-tx-fsize></span>
+          </div>
+          <pre data-tx-preview${L}></pre>
+        </div>
+        <div class="tx-export-actions">
+          <button type="button" class="btn btn-primary btn-sm" data-tx-dl>${icon("download", 12)} Download</button>
+          <button type="button" class="btn btn-outline btn-sm" data-tx-copy>${icon("copy", 12)} Copy text</button>
+        </div>
+      </div>`;
+
+    // ---------------- footer: usage ----------------
+    let footer = "";
+    if (usage.total_tokens) {
+      const parts = [
+        ["Audio in", usage.audio_input_tokens || 0, "#8b7cf6"],
+        ["Text in", usage.text_input_tokens || 0, "#c4b9fb"],
+        ["Output", usage.output_tokens || 0, "#f0a27f"],
+      ];
+      const tot = parts.reduce((a, p) => a + p[1], 0) || 1;
+      footer = `<details class="expander">
+        <summary>${icon("chevron", 12)} ${icon("cpu", 12)} Model &amp; usage <span class="muted">· ${esc(usage.total_tokens.toLocaleString())} tokens${cost != null ? ` · $${Number(cost).toFixed(4)}` : ""}</span></summary>
+        <div class="token-body">
+          <div class="split-bar">${parts.map((p) => `<i style="width:${(p[1] / tot) * 100}%;background:${p[2]}"></i>`).join("")}</div>
+          <div class="token-grid">
+            ${parts.map((p) => `<div><small><i class="sw" style="background:${p[2]}"></i>${p[0]}</small><b>${p[1].toLocaleString()}</b></div>`).join("")}
+            <div><small>Total</small><b>${usage.total_tokens.toLocaleString()}</b></div>
+          </div>
+          <p class="tx-model muted small">${icon("cpu", 11)} ${esc(d.model || "-")}${d.mime_type ? ` · ${esc(d.mime_type)}` : ""}${d.size_bytes ? ` · ${esc(UI.fmtBytes(d.size_bytes))}` : ""}${usage.model_calls ? ` · ${usage.model_calls} model call${usage.model_calls === 1 ? "" : "s"}` : ""}</p>
+        </div>
+      </details>`;
+    }
+
     return {
-      title: "Transcript",
-      tabs: [{
-        id: "transcript", label: "Transcript",
-        html: kpis([
-          { label: "Duration", value: fmtTime(d.duration_sec) },
-          { label: "Words", value: d.word_count ?? "-" },
-          { label: "Speakers", value: (d.speakers || Object.keys(speakers)).length },
-          { label: "Confidence", value: d.confidence ? `${Math.round(d.confidence * 100)}%` : "-" },
-        ]) +
-        box("Talk time", `<div class="split-bar">${Object.entries(speakers).map(([, v], i) => `<i style="width:${(v / total) * 100}%;background:${colors[i % 4]}"></i>`).join("")}</div>
-          <div class="legend">${Object.entries(speakers).map(([k, v], i) => `<span style="--c:${colors[i % 4]}">${esc(k)} ${Math.round((v / total) * 100)}%</span>`).join("")}</div>`) +
-        transcriptHtml(segs),
-      }],
-      onMount: (root, c) => mountTranscript(root, segs, c.audio),
+      title: "Call transcript",
+      header,
+      footer,
+      tabs: [
+        { id: "chat", label: "Conversation", icon: "chat", html: chat },
+        { id: "speakers", label: "By speaker", icon: "users", html: cols },
+        { id: "export", label: "Export", icon: "download", html: exportHtml },
+      ],
+      onMount(root, c) {
+        const audio = c.audio;
+        const $ = (sel) => root.querySelector(sel);
+        const deck = $("[data-deck]"), chatEl = $("[data-tx-chat]"), tracks = $("[data-tx-tracks]");
+        const headEl = $("[data-tx-head]"), nowEl = $("[data-tx-now]"), cap = $("[data-tx-caption]"), tip = $("[data-tx-tip]");
+        const follow = $("[data-tx-follow]"), playBtn = $("[data-tx-play]");
+        const msgs = [...chatEl.querySelectorAll(".tx-msg")];
+        const blkAt = {};
+        root.querySelectorAll(".tx-blk").forEach((b) => { blkAt[b.dataset.seg] = b; });
+        const lineAt = {};
+        root.querySelectorAll(".tx-lines li").forEach((li) => { lineAt[li.dataset.seek] = li; });
+
+        const hasAudio = () => !!(audio && audio.getAttribute("src"));
+        const setAudioState = () => {
+          const ok = hasAudio();
+          root.classList.toggle("tx-silent", !ok);
+          playBtn.disabled = !ok;
+          $("[data-tx-noaudio]").classList.toggle("hidden", ok);
+          $("[data-tx-hint]").classList.toggle("hidden", !ok);
+        };
+        setAudioState();
+
+        // -- caption under the lanes
+        function showCaption(i, idle = false) {
+          const s = segs[i];
+          if (!s) return;
+          cap.innerHTML = `<span class="tx-cap-who spk-${spkClass(s.speaker)}">${esc(s.speaker)}<small>${clock(s.start)}</small></span>
+            <p${L}>${esc(s.text)}</p>${idle && hasAudio() ? `<em>Press play to follow along</em>` : ""}`;
+          cap.classList.toggle("idle", idle);
+          cap.classList.remove("swap"); void cap.offsetWidth; cap.classList.add("swap");
+        }
+        showCaption(0, true);
+
+        // -- scrolling inside the chat box (never the whole page)
+        function scrollChat(el, smooth = true) {
+          if (!el || chatEl.closest(".tab-panel").classList.contains("hidden")) return;
+          const top = el.offsetTop - chatEl.clientHeight / 2 + el.offsetHeight / 2;
+          chatEl.scrollTo({ top: Math.max(0, top), behavior: smooth ? "smooth" : "auto" });
+        }
+        function flash(el) { if (!el) return; el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash"); }
+
+        // -- playback sync
+        let active = -1;
+        const segAt = (t) => {
+          for (let i = segs.length - 1; i >= 0; i--) if (t >= segs[i].start) return t < segs[i].end + 0.25 ? i : -1;
+          return -1;
+        };
+        function setActive(i, scroll) {
+          if (i === active) return;
+          [msgs[active], blkAt[active], lineAt[active]].forEach((el) => el?.classList.remove("live"));
+          active = i;
+          if (i < 0) return;
+          [msgs[i], blkAt[i], lineAt[i]].forEach((el) => el?.classList.add("live"));
+          showCaption(i);
+          if (scroll && follow.checked && !msgs[i].classList.contains("hidden")) scrollChat(msgs[i]);
+        }
+        function sync(scroll = true) {
+          if (!root.isConnected) return false;
+          const t = audio ? audio.currentTime : 0;
+          headEl.style.left = `${Math.min(100, (t / duration) * 100)}%`;
+          deck.classList.toggle("started", t > 0);
+          nowEl.textContent = clock(t);
+          if (t > 0 || !audio.paused) setActive(segAt(t), scroll);
+          return true;
+        }
+        let raf = 0;
+        const loop = () => { if (sync()) raf = requestAnimationFrame(loop); };
+        if (audio) {
+          // property handlers (not addEventListener) so a re-render replaces them instead of stacking
+          audio.onplay = () => { if (!root.isConnected) return; deck.classList.add("playing"); cancelAnimationFrame(raf); loop(); };
+          audio.onpause = audio.onended = () => { cancelAnimationFrame(raf); if (root.isConnected) { deck.classList.remove("playing"); sync(false); } };
+          audio.onseeked = () => sync();
+          audio.onloadedmetadata = audio.onemptied = () => { if (root.isConnected) setAudioState(); };
+          audio.onerror = () => {
+            if (!root.isConnected || !audio.getAttribute("src")) return;
+            playBtn.disabled = true;
+            const note = $("[data-tx-noaudio]");
+            note.querySelector("span").textContent = "The audio could not be loaded in the browser (the link may block playback). The transcript is still complete.";
+            note.classList.remove("hidden");
+          };
+          if (audio.currentTime > 0) sync(false);
+          if (!audio.paused) audio.onplay();
+        }
+
+        function playFrom(i) {
+          if (!hasAudio()) return false;
+          audio.currentTime = segs[i].start;
+          audio.play().catch(() => UI.toast("The audio could not be played", "error"));
+          return true;
+        }
+        playBtn.addEventListener("click", () => {
+          if (!hasAudio()) return;
+          if (audio.paused) audio.play().catch(() => UI.toast("The audio could not be played", "error"));
+          else audio.pause();
+        });
+
+        // -- timeline: hover preview + click to jump
+        const pos = (e) => { const r = tracks.getBoundingClientRect(); return { x: Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), w: r.width }; };
+        tracks.addEventListener("mousemove", (e) => {
+          const { x, w } = pos(e);
+          const b = e.target.closest(".tx-blk"), s = b && segs[+b.dataset.seg];
+          tip.innerHTML = s
+            ? `<b class="spk-${spkClass(s.speaker)}">${esc(s.speaker)} · ${clock(s.start)}</b><span${L}>${esc(shorten(s.text))}</span>`
+            : `<b>${clock(x * duration)}</b>`;
+          tip.style.left = `${Math.min(w - 110, Math.max(110, x * w))}px`;
+          tip.classList.add("show");
+        });
+        tracks.addEventListener("mouseleave", () => tip.classList.remove("show"));
+        tracks.addEventListener("click", (e) => {
+          const b = e.target.closest(".tx-blk");
+          if (b) {
+            const i = +b.dataset.seg;
+            c.switchTab("chat");
+            if (msgs[i].classList.contains("hidden")) { root.querySelector(`[data-tx-spk="${msgs[i].dataset.spk}"]`)?.click(); }
+            scrollChat(msgs[i]);
+            flash(msgs[i]);
+            playFrom(i);
+            return;
+          }
+          if (!hasAudio()) return;
+          audio.currentTime = pos(e).x * duration;
+          sync();
+        });
+
+        // -- click a line (chat or speaker column) to play from there
+        const lineClick = (e) => {
+          if (window.getSelection()?.toString()) return;          // user is selecting text to copy
+          const el = e.target.closest("[data-seek], .tx-msg");
+          if (!el) return;
+          const i = +(el.dataset.seek ?? el.dataset.i);
+          if (!playFrom(i)) flash(el.closest(".tx-msg") || el);
+        };
+        chatEl.addEventListener("click", lineClick);
+        root.querySelector(".tx-cols").addEventListener("click", lineClick);
+
+        // -- search
+        const q = $("[data-tx-q]"), countEl = $("[data-tx-count]");
+        let hits = [], cur = -1, qTimer = null;
+        function runSearch() {
+          const term = q.value.trim();
+          msgs.forEach((m, i) => {
+            const r = markText(segs[i].text, term);
+            m.querySelector("[data-tx-text]").innerHTML = r.html;
+            m.classList.toggle("dim", !!term && !r.n);
+          });
+          hits = [...chatEl.querySelectorAll(".tx-msg:not(.hidden) mark.tx-hit")];
+          cur = hits.length ? 0 : -1;
+          showHit();
+        }
+        function showHit() {
+          const term = q.value.trim();
+          hits.forEach((h, k) => h.classList.toggle("cur", k === cur));
+          countEl.textContent = term ? (hits.length ? `${cur + 1} / ${hits.length}` : "No match") : "";
+          countEl.classList.toggle("none", !!term && !hits.length);
+          if (cur >= 0) scrollChat(hits[cur].closest(".tx-msg"));
+        }
+        const step = (dir) => { if (!hits.length) return; cur = (cur + dir + hits.length) % hits.length; showHit(); };
+        q.addEventListener("input", () => { clearTimeout(qTimer); qTimer = setTimeout(runSearch, 120); });
+        q.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); clearTimeout(qTimer); if (!hits.length) runSearch(); else step(e.shiftKey ? -1 : 1); } });
+        $("[data-tx-prev]").addEventListener("click", () => step(-1));
+        $("[data-tx-next]").addEventListener("click", () => step(1));
+
+        // -- speaker filters
+        root.querySelectorAll("[data-tx-spk]").forEach((b) => b.addEventListener("click", () => {
+          const on = !b.classList.contains("on");
+          if (!on && root.querySelectorAll("[data-tx-spk].on").length === 1) return UI.toast("At least one speaker has to stay visible");
+          b.classList.toggle("on", on);
+          msgs.forEach((m) => { if (m.dataset.spk === b.dataset.txSpk) m.classList.toggle("hidden", !on); });
+          runSearch();
+        }));
+
+        // -- text size
+        let size = 1;
+        root.querySelectorAll("[data-tx-size]").forEach((b) => b.addEventListener("click", () => {
+          size = Math.min(TX_SIZES.length - 1, Math.max(0, size + Number(b.dataset.txSize)));
+          chatEl.style.setProperty("--tx-fs", `${TX_SIZES[size]}px`);
+          root.querySelector('[data-tx-size="-1"]').disabled = size === 0;
+          root.querySelector('[data-tx-size="1"]').disabled = size === TX_SIZES.length - 1;
+        }));
+
+        // -- export
+        let fmt = "timestamped";
+        const preview = $("[data-tx-preview]");
+        const fileName = () => `${baseName}-transcript.${FORMATS[fmt].ext}`;
+        function renderExport() {
+          const text = FORMATS[fmt].make();
+          preview.textContent = text;
+          $("[data-tx-fname]").textContent = fileName();
+          $("[data-tx-fsize]").textContent = `${text.split("\n").length} lines · ${UI.fmtBytes(new Blob([text]).size)}`;
+          root.querySelectorAll(".tx-fmt").forEach((b) => b.classList.toggle("active", b.dataset.fmt === fmt));
+        }
+        root.querySelectorAll(".tx-fmt").forEach((b) => b.addEventListener("click", () => { fmt = b.dataset.fmt; renderExport(); }));
+        $("[data-tx-copy]").addEventListener("click", () => UI.copy(FORMATS[fmt].make()));
+        $("[data-tx-dl]").addEventListener("click", () => UI.download(fileName(), FORMATS[fmt].make(), "text/plain;charset=utf-8"));
+        renderExport();
+      },
     };
   };
 
@@ -393,68 +776,6 @@
       ],
       onMount: (root) => root.querySelectorAll(".criterion-head").forEach((h) =>
         h.addEventListener("click", () => h.parentElement.classList.toggle("open"))),
-    };
-  };
-
-  // ======================================================================
-  // Potential Lead Finder  (demo shape - update when API is shared)
-  // ======================================================================
-  Renderers["potential-lead-finder"] = (d) => {
-    const leads = d.leads || [];
-    const initials = (n) => n.split(" ").map((p) => p[0]).slice(0, 2).join("");
-    return {
-      title: "Recommended leads",
-      tabs: [
-        {
-          id: "leads", label: `Leads (${leads.length})`,
-          html: kpis([
-            { label: "Records scanned", value: (d.total_scanned || 0).toLocaleString() },
-            { label: "Leads found", value: d.total_found ?? leads.length },
-            { label: "Avg. score", value: d.avg_score ?? "-" },
-            { label: "High intent", value: leads.filter((l) => l.intent === "High").length },
-          ]) +
-          `<div class="lead-list">${leads.map((l) => `
-            <div class="lead-card">
-              <span class="avatar">${esc(initials(l.name))}</span>
-              <div>
-                <div class="strong">${esc(l.name)}</div>
-                <div class="muted">${esc(l.title)} · ${esc(l.company)}</div>
-                <div class="chip-row" style="margin-top:6px">
-                  ${tag(l.intent + " intent", l.intent === "High" ? "green" : l.intent === "Medium" ? "amber" : "")}${tag(l.industry)}${tag(l.employees + " emp.")}${tag(l.location)}
-                </div>
-                <div class="lead-details">
-                  <p>${esc(l.reason)}</p>
-                  <div class="chip-row">${(l.signals || []).map((s) => tag(s, "blue")).join("")}</div>
-                  <p>${icon("mail", 12)} ${esc(l.email)}<br><b>Next step:</b> ${esc(l.next_action)}</p>
-                </div>
-                <button class="link-btn" type="button">Show details</button>
-              </div>
-              <div class="lead-score"><strong style="color:${scoreColor(l.score)}">${l.score}</strong><small class="muted">score</small></div>
-            </div>`).join("")}
-          </div>`,
-        },
-        {
-          id: "table", label: "Table",
-          html: `<div class="table-wrap"><table class="data">
-            <thead><tr><th>Score</th><th>Name</th><th>Title</th><th>Company</th><th>Industry</th><th>Intent</th><th>Email</th></tr></thead>
-            <tbody>${leads.map((l) => `<tr><td><b style="color:${scoreColor(l.score)}">${l.score}</b></td><td>${esc(l.name)}</td><td>${esc(l.title)}</td>
-              <td>${esc(l.company)}</td><td>${esc(l.industry)}</td><td>${esc(l.intent)}</td><td>${esc(l.email)}</td></tr>`).join("")}
-            </tbody></table></div>
-            <button class="btn btn-sm btn-outline" style="margin-top:10px" data-csv>${icon("download", 12)} Export CSV</button>`,
-        },
-      ],
-      onMount: (root) => {
-        root.querySelectorAll(".link-btn").forEach((b) => b.addEventListener("click", () => {
-          const card = b.closest(".lead-card");
-          card.classList.toggle("open");
-          b.textContent = card.classList.contains("open") ? "Hide details" : "Show details";
-        }));
-        root.querySelector("[data-csv]")?.addEventListener("click", () => {
-          const cols = ["score", "name", "title", "company", "industry", "intent", "email", "next_action"];
-          const csv = [cols.join(","), ...leads.map((l) => cols.map((c) => `"${String(l[c] ?? "").replace(/"/g, '""')}"`).join(","))].join("\n");
-          UI.download("leads.csv", csv, "text/csv");
-        });
-      },
     };
   };
 

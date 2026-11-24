@@ -28,6 +28,13 @@ class Feature:
     steps: list[str] = field(default_factory=list)
     use_cases: list[dict] = field(default_factory=list)
     processing_steps: list[str] = field(default_factory=list)
+    accepts_url: bool = False       # input can be an audio/file link instead of an upload
+    theme: str = "default"          # page accent, see .theme-* in style.css
+    history_hint: str = "Search saved results…"
+    batch: bool = False             # many files/links per run (see /api/features/<slug>/batch)
+    input_template: str = "inputs/panel.html"
+    scripts: list[str] = field(default_factory=list)   # extra page JS (loaded before feature.js)
+    styles: list[str] = field(default_factory=list)    # extra page CSS
 
     @property
     def api(self) -> dict:
@@ -74,6 +81,7 @@ FEATURES: list[Feature] = [
         file_required=True,
         run_label="Analyze call",
         docs_file="recording_analysis.md",
+        history_hint="Search file, agent, customer, lead…",
         form_fields=[
             {"name": "language", "label": "Summary language", "type": "select", "required": True,
              "options": [["en", "English"], ["bn", "Bangla"]], "default": "en",
@@ -139,66 +147,87 @@ FEATURES: list[Feature] = [
         processing_steps=["Uploading recording", "Transcribing", "Scoring against criteria", "Preparing feedback"],
     ),
     Feature(
-        slug="call-recording-transcript",
-        name="Call Recording Transcript",
-        short_name="Transcript",
+        slug="call-transcription",
+        name="Call Transcription",
+        short_name="Transcription",
         category="Voice & Call Intelligence",
-        icon="document",
-        tagline="Speaker-labelled, timestamped transcripts of call recordings.",
+        icon="captions",
+        tagline="Word-for-word, speaker-separated transcripts of any call, Bangla included.",
         description=(
-            "Converts call recordings into searchable transcripts with speaker labels "
-            "and timestamps. Click a line to play that part of the audio."
+            "Upload a call recording or paste a link to one and the AI writes down the whole "
+            "conversation: every line timestamped and labelled Agent or Customer. Play the call "
+            "and follow along line by line, search what was said, and export as text or subtitles."
         ),
         env_prefix="CALL_TRANSCRIPT",
         file_kind="recordings",
         file_required=True,
-        run_label="Transcribe",
-        highlights=["Speaker separation", "Timestamps synced with audio", "Search, copy and download"],
-        steps=["Upload a recording", "AI transcribes and separates speakers", "Search, play back and export"],
-        use_cases=[
-            {"title": "Record keeping", "text": "Searchable text records of customer calls."},
-            {"title": "Training", "text": "Use real conversations for training material."},
-            {"title": "Data pipelines", "text": "Feed transcripts to CRMs and analytics tools."},
+        accepts_url=True,
+        theme="studio",
+        run_label="Transcribe call",
+        docs_file="call_transcription.md",
+        history_hint="Search file, link, language or words spoken…",
+        highlights=[
+            "Agent / Customer speaker separation",
+            "Timestamp on every line, synced with the audio",
+            "Works with Bangla, English and mixed speech",
+            "Upload a file or transcribe straight from a URL",
+            "Export as text, per-speaker text or .srt subtitles",
         ],
-        processing_steps=["Uploading recording", "Detecting speakers", "Transcribing speech", "Aligning timestamps"],
+        steps=[
+            "Upload a recording or paste a direct link to one",
+            "AI detects the language and separates the speakers",
+            "Follow along with playback, search and export",
+        ],
+        use_cases=[
+            {"title": "Record keeping", "text": "A searchable written record of every customer call."},
+            {"title": "Quality & disputes", "text": "Check exactly what was promised, word for word."},
+            {"title": "Data pipelines", "text": "Feed transcripts into CRMs, analytics and other AI tools."},
+        ],
+        processing_steps=["Fetching audio", "Detecting language", "Separating speakers", "Writing transcript"],
     ),
     Feature(
-        slug="potential-lead-finder",
-        name="Potential Lead Finder",
+        slug="lead-finder",
+        name="Lead Finder AI",
         short_name="Lead Finder",
         category="Sales Intelligence",
         icon="target",
-        tagline="Find and rank the prospects most likely to buy.",
+        tagline="Scan 1 to 1,000 call recordings and pick out the callers worth following up.",
         description=(
-            "Scans CRM data and market signals to find high-intent prospects, scores "
-            "them by fit and buying intent and explains why each one is worth contacting."
+            "Drop in a batch of call recordings (or links to them) and describe your business. "
+            "The AI listens to every call and sorts it into Strong lead, Potential lead, Weak interest "
+            "or Not a lead, with the keywords it heard, what the customer needs and why. "
+            "Leave the criteria empty to use the built-in FedEx profile."
         ),
         env_prefix="LEAD_FINDER",
-        file_kind="crm",
-        file_required=False,
+        file_kind="recordings",
+        file_required=True,
+        accepts_url=True,
+        theme="radar",
         run_label="Find leads",
-        form_fields=[
-            {"name": "industry", "label": "Industry", "type": "select",
-             "options": [["", "Any"]] + [[x, x] for x in [
-                 "Telecommunications", "Insurance", "Software", "Healthcare", "E-commerce",
-                 "Financial Services", "Real Estate", "Education", "Logistics", "Manufacturing"]]},
-            {"name": "location", "label": "Location", "type": "text", "placeholder": "e.g. Dhaka"},
-            {"name": "company_size", "label": "Company size", "type": "select",
-             "options": [["", "Any"], ["1-50", "1-50"], ["51-200", "51-200"],
-                         ["201-1000", "201-1000"], ["1000+", "1000+"]]},
-            {"name": "limit", "label": "Number of leads", "type": "select",
-             "options": [["5", "5"], ["8", "8"], ["10", "10"]], "default": "8"},
-            {"name": "product", "label": "What are you selling?", "type": "textarea", "full": True,
-             "placeholder": "e.g. AI call center analytics"},
+        docs_file="lead_finder.md",
+        history_hint="Search file, keyword, business…",
+        batch=True,
+        input_template="inputs/lead_finder.html",
+        scripts=["js/lead_view.js", "js/lead_input.js"],
+        styles=["css/lead_finder.css"],
+        highlights=[
+            "1 to 1,000 calls per run, files and links mixed",
+            "Strong / Potential / Weak / Not a lead for every call",
+            "Your own keywords, business profile and exclusions",
+            "Live progress board while calls are analyzed",
+            "Lead board, searchable call table and CSV export",
         ],
-        highlights=["Lead scoring (0-100)", "Reasons for each recommendation", "Suggested next action"],
-        steps=["Describe your ideal customer or upload CRM data", "AI scores fit and intent", "Get a ranked lead list"],
+        steps=[
+            "Add call recordings: upload files, paste links or pick samples",
+            "Describe what counts as a lead (or keep the FedEx default)",
+            "AI analyzes every call and ranks the leads",
+        ],
         use_cases=[
-            {"title": "B2B sales", "text": "Focus SDR time on accounts most likely to convert."},
-            {"title": "Marketing", "text": "Build precise campaign audiences."},
-            {"title": "Agencies", "text": "Find prospects in a region or vertical in minutes."},
+            {"title": "Sales teams", "text": "Find buyers hidden in yesterday's inbound calls."},
+            {"title": "Call centers", "text": "Pass sales opportunities from support calls to sales."},
+            {"title": "Managers", "text": "See how many real opportunities a campaign produced."},
         ],
-        processing_steps=["Reading CRM records", "Enriching signals", "Scoring fit and intent", "Ranking leads"],
+        processing_steps=["Uploading calls", "Listening", "Matching lead criteria", "Ranking leads"],
     ),
 ]
 

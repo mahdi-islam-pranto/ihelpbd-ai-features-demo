@@ -3,7 +3,11 @@
 {% block title %}{{ feature.name }} | {{ app_name }}{% endblock %}
 {% block crumbs %}<span class="sep">/</span><span class="muted">{{ feature.category }}</span><span class="sep">/</span><span>{{ feature.name }}</span>{% endblock %}
 
+{% block head %}{% for css in feature.styles %}<link rel="stylesheet" href="{{ asset(css) }}">
+{% endfor %}{% endblock %}
+
 {% block content %}
+<div class="feature-page theme-{{ feature.theme }}">
 <div class="page-head">
   <div class="page-head-main">
     <span class="head-icon">{{ icon(feature.icon, 20) }}</span>
@@ -16,6 +20,7 @@
 
 <div class="workspace" id="demoApp"
      data-feature="{{ feature.slug }}"
+     data-accepts-url="{{ 'true' if feature.accepts_url else 'false' }}"
      data-file-kind="{{ feature.file_kind or '' }}"
      data-file-required="{{ 'true' if feature.file_required else 'false' }}"
      data-mode="{{ feature.mode }}"
@@ -25,7 +30,7 @@
   <div class="ws-left">
     <div class="card">
       <div class="card-head"><h3>{{ icon("upload", 14) }} Input</h3></div>
-      {% include "inputs/panel.html" %}
+      {% include feature.input_template %}
     </div>
 
     {% if history_enabled %}
@@ -34,7 +39,7 @@
         <h3>{{ icon("history", 14) }} Saved results <span class="count-pill" id="historyCount"></span></h3>
         <button type="button" class="icon-btn sm" id="historyRefresh" title="Refresh">{{ icon("refresh", 12) }}</button>
       </div>
-      <input type="search" class="input hist-search" id="historySearch" placeholder="Search file, agent, customer, lead…">
+      <input type="search" class="input hist-search" id="historySearch" placeholder="{{ feature.history_hint }}">
       <div class="hist-list" id="historyList"><div class="hist-note muted small">Loading…</div></div>
       <button type="button" class="btn btn-outline btn-sm btn-block hidden" id="historyMore">Load more</button>
     </div>
@@ -62,16 +67,19 @@
     </div>
     <div class="result-loading hidden" id="resultLoading">
       <div class="spinner"></div>
+      <div class="eq-loader" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
       <strong id="loadingText">Processing…</strong>
       <ul class="progress-steps" id="progressSteps"></ul>
     </div>
     <div class="result-body hidden" id="resultBody"></div>
   </div>
 </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', path='js/player.js') }}"></script>
-<script src="{{ url_for('static', path='js/renderers.js') }}"></script>
-<script src="{{ url_for('static', path='js/feature.js') }}"></script>
+<script src="{{ asset('js/player.js') }}"></script>
+<script src="{{ asset('js/renderers.js') }}"></script>
+{% for js in feature.scripts %}<script src="{{ asset(js) }}"></script>
+{% endfor %}<script src="{{ asset('js/feature.js') }}"></script>
 {% endblock %}

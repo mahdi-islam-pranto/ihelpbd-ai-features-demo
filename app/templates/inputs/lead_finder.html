@@ -1,0 +1,65 @@
+{% from "partials/icons.html" import icon %}
+{# Lead Finder AI input: a queue of 1-1000 calls (files, samples, links) + lead criteria. Driven by js/lead_input.js #}
+<div class="lf-in" id="lfIn">
+  <div class="lf-step"><span class="lf-step-n">1</span><span>Calls to scan</span><small class="muted">1 – 1,000 recordings</small></div>
+
+  <div class="src-switch" role="tablist" aria-label="How to add calls">
+    <button type="button" class="src-opt active" role="tab" aria-selected="true" data-lf-tab="files">{{ icon("upload", 13) }} Files <span class="lf-tabn" data-lf-n="files"></span></button>
+    <button type="button" class="src-opt" role="tab" aria-selected="false" data-lf-tab="links">{{ icon("link", 13) }} Links <span class="lf-tabn" data-lf-n="links"></span></button>
+  </div>
+
+  <div data-lf-pane="files">
+    <label class="dropzone lf-drop" id="lfDrop">
+      <input type="file" id="lfFiles" hidden multiple accept="audio/*,.mp3,.wav,.m4a,.ogg,.flac,.webm,.aac">
+      {{ icon("upload", 18) }}
+      <span><b>Choose recordings</b> or drop a whole batch here<br><small class="muted">MP3, WAV, OGG, M4A, FLAC · select many at once</small></span>
+    </label>
+    <div class="sample-list" id="lfSamples"><span class="muted small">Loading samples…</span></div>
+  </div>
+
+  <div data-lf-pane="links" class="hidden">
+    <textarea id="lfLinks" class="input lf-links" rows="4" spellcheck="false"
+              placeholder="https://example.com/call-001.mp3&#10;https://example.com/call-002.mp3"></textarea>
+    <div class="lf-links-bar">
+      <small class="muted" id="lfLinkStat">One link per line, or separated by commas.</small>
+      <button type="button" class="btn btn-outline btn-sm" id="lfAddLinks" disabled>{{ icon("plus", 12) }} Add to queue</button>
+    </div>
+    <div class="sample-list" id="lfSampleLinks"></div>
+  </div>
+
+  <div class="lf-queue" id="lfQueue">
+    <div class="lf-queue-head">
+      <b>Queue</b><span class="muted" id="lfQueueStat">empty</span>
+      <button type="button" class="lf-clear hidden" id="lfClear">Clear all</button>
+    </div>
+    <ul class="lf-queue-list" id="lfQueueList"></ul>
+    <p class="lf-queue-empty muted small" id="lfQueueEmpty">Add recordings or links above. Files and links can be mixed.</p>
+  </div>
+
+  <div class="lf-step"><span class="lf-step-n">2</span><span>What counts as a lead?</span></div>
+  <div class="lf-presets" id="lfPresets">
+    <button type="button" class="lf-preset" data-preset="default">{{ icon("sparkles", 12) }} FedEx default</button>
+    <button type="button" class="lf-preset" data-preset="hospital">{{ icon("plus", 12) }} Hospital example</button>
+  </div>
+  <div class="lf-mode" id="lfMode"></div>
+
+  <div class="lf-fields">
+    <div class="field full">
+      <span>Lead keywords</span>
+      <div class="lf-tags" id="lfTags">
+        <input type="text" id="lfTagInput" placeholder="Type a word or phrase, press Enter" autocomplete="off" aria-label="Add a lead keyword">
+      </div>
+      <small class="muted">Any language. Paste a list separated by commas to add many.</small>
+    </div>
+    <label class="field full">
+      <span>Business context</span>
+      <textarea id="lfContext" rows="3" placeholder="Who you are, what you sell and which callers count as a lead."></textarea>
+    </label>
+    <label class="field full">
+      <span>Not a lead <span class="muted">(optional)</span></span>
+      <textarea id="lfNot" rows="2" placeholder="Calls that should NOT count, e.g. complaints, tracking existing orders."></textarea>
+    </label>
+  </div>
+
+  <button class="btn btn-primary btn-block" id="runBtn" disabled>{{ icon("target", 13) }} <span id="lfRunLabel">{{ feature.run_label }}</span></button>
+</div>

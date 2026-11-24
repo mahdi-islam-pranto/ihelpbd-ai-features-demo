@@ -31,19 +31,26 @@ async def _simulate_latency(lo: float = 1.6, hi: float = 2.8):
     await asyncio.sleep(random.uniform(lo, hi))
 
 
-def _transcript() -> dict:
-    segments = [
-        {"speaker": s, "start": a, "end": b, "text": t}
-        for s, a, b, t in SAMPLE_CALL
-    ]
-    words = sum(len(t.split()) for *_, t in SAMPLE_CALL)
+def _transcript(params: dict, filename: str | None = None) -> dict:
+    """Same shape as the live /transcribe API (api_docs/call_transcription.md)."""
+    mmss = lambda sec: f"{int(sec) // 60:02d}:{int(sec) % 60:02d}"  # noqa: E731
+    segments = [{"speaker": s, "start": mmss(a), "text": t} for s, a, _b, t in SAMPLE_CALL]
+    by = lambda who: "\n".join(f"[{x['start']}] {x['text']}" for x in segments if x["speaker"] == who)  # noqa: E731
+    url = params.get("audio_url")
     return {
-        "language": "English (US)",
-        "duration_sec": SAMPLE_CALL[-1][2],
-        "word_count": words,
-        "confidence": 0.962,
-        "speakers": ["Agent", "Customer"],
+        "audio_url": url,
+        "file_name": filename or (url.rsplit("/", 1)[-1] if url else "demo-call.wav"),
+        "mime_type": "audio/wav",
+        "size_bytes": 1_984_512,
+        "duration_seconds": SAMPLE_CALL[-1][2],
+        "model": "demo",
+        "language": "English",
         "segments": segments,
+        "transcript": {"agent": by("Agent"), "customer": by("Customer")},
+        "usage": {"input_tokens": 4210, "audio_input_tokens": 3770, "text_input_tokens": 440,
+                  "output_tokens": 812, "thinking_tokens": 0, "total_tokens": 5022, "model_calls": 1,
+                  "input_cost_usd": 0.001852, "output_cost_usd": 0.001218, "total_cost_usd": 0.00307},
+        "processing_seconds": 6.4,
     }
 
 
@@ -143,85 +150,111 @@ def _quality_check() -> dict:
     }
 
 
-LEAD_POOL = [
-    ("Priya Sharma", "Head of Operations", "Nimbus Logistics", "Logistics", 220),
-    ("Daniel Brooks", "VP Customer Experience", "Crestline Insurance", "Insurance", 850),
-    ("Aisha Rahman", "Contact Center Director", "Vertex Telecom", "Telecommunications", 1400),
-    ("Marco Rossi", "Chief Revenue Officer", "BluePeak SaaS", "Software", 180),
-    ("Emily Chen", "Sales Operations Manager", "Harbor Health Clinics", "Healthcare", 540),
-    ("Lucas Meyer", "Director of Support", "UrbanCart Retail", "E-commerce", 390),
-    ("Fatima Noor", "Customer Success Lead", "Lumen Finance", "Financial Services", 310),
-    ("James O'Connor", "Head of Inside Sales", "Atlas Real Estate Group", "Real Estate", 120),
-    ("Sofia Alvarez", "COO", "BrightPath Education", "Education", 260),
-    ("Ryan Patel", "IT Director", "Summit Manufacturing", "Manufacturing", 980),
+# (quality, summary, intent, keywords, signals, requirements, justification)
+LEAD_CALLS = [
+    ("Strong Lead",
+     "The caller runs a garments business and wants to start shipping sample parcels to buyers in the USA every week. "
+     "They asked for rates, transit time and whether a pickup can be arranged from their factory.",
+     "Open a business account for regular international shipping.",
+     ["international shipping", "rate", "pickup", "business account"],
+     ["recurring weekly volume", "asked for a corporate rate"],
+     ["Weekly export shipments to the USA", "Pickup from factory in Gazipur", "Corporate pricing"],
+     "The customer has a clear, recurring shipping need and asked how to open an account, which is a direct sales opportunity."),
+    ("Strong Lead",
+     "A pharmaceutical exporter asked about temperature-controlled shipping to the Middle East and wanted a quotation.",
+     "Get a quotation for cold-chain shipments.",
+     ["quotation", "export", "cold chain"],
+     ["asked for a quotation by email", "decision maker on the call"],
+     ["Temperature-controlled shipping", "Quotation by email"],
+     "The caller asked for a formal quotation for a new service, which is a strong buying signal."),
+    ("Potential Lead",
+     "The customer asked how much it costs to send documents to Canada and how long it takes, but has not decided yet.",
+     "Compare document shipping prices to Canada.",
+     ["rate", "documents", "international shipping"],
+     ["price comparison"],
+     ["Document shipment to Canada"],
+     "The customer is interested in a new shipment and asked about price, but did not commit."),
+    ("Weak Interest",
+     "The caller asked general questions about which countries FedEx serves, without a specific shipment in mind.",
+     "General information about service coverage.",
+     ["international"],
+     [],
+     [],
+     "Some interest in the service, but no concrete need or timeline was mentioned."),
+]
+NOT_LEAD_CALLS = [
+    ("The customer called to check the delivery status of a parcel that is already in transit.",
+     "Track an existing shipment.",
+     "The call is about an existing shipment, not new business."),
+    ("The customer asked for a refund of customs duty paid on an imported package.",
+     "Get a refund for customs duty.",
+     "A support request about a past shipment; there is no new shipping need."),
+    ("The caller complained that the courier did not arrive on time and asked for the branch phone number.",
+     "Complain about a late delivery.",
+     "A complaint about an existing delivery, not a sales opportunity."),
 ]
 
-SIGNALS = [
-    "Hiring 12+ call center agents", "Recently raised Series B funding",
-    "Visited pricing page 3x this week", "Using outdated legacy CRM",
-    "Expanding to 2 new regions", "Negative reviews mention long wait times",
-    "Downloaded 'AI for Support' whitepaper", "New VP of CX joined 2 months ago",
-    "Contract with competitor ends next quarter", "High volume of inbound calls",
-]
 
-
-def _leads(params: dict) -> dict:
-    rng = random.Random(str(sorted(params.items())))
-    industry = (params.get("industry") or "").strip()
-    location = (params.get("location") or "").strip() or "United States"
-    count = int(params.get("limit") or 8)
-
-    pool = LEAD_POOL[:]
-    rng.shuffle(pool)
-    if industry and industry.lower() != "any":
-        pool.sort(key=lambda x: x[3].lower() != industry.lower())
-
-    leads = []
-    for name, title, company, ind, employees in pool[:count]:
-        score = rng.randint(58, 97)
-        if industry and ind.lower() == industry.lower():
-            score = min(99, score + 8)
-        first, last = name.split(" ", 1)
-        domain = company.lower().replace(" ", "").replace("'", "") + ".com"
-        leads.append({
-            "name": name,
-            "title": title,
-            "company": company,
-            "industry": ind,
-            "employees": employees,
-            "location": location,
-            "email": f"{first.lower()}.{last.split()[-1].lower().replace(chr(39), '')}@{domain}",
-            "score": score,
-            "intent": "High" if score >= 85 else "Medium" if score >= 70 else "Low",
-            "signals": rng.sample(SIGNALS, 3),
-            "reason": (f"{company} matches your ideal customer profile in {ind} "
-                       f"and shows strong buying intent from recent activity."),
-            "next_action": rng.choice([
-                "Send personalised email with case study",
-                "Connect on LinkedIn and book a discovery call",
-                "Invite to product demo webinar",
-                "Call directly. High urgency signals",
-            ]),
-        })
-    leads.sort(key=lambda l: l["score"], reverse=True)
+def _lead_finder(params: dict, names: list[str] | None) -> dict:
+    """Same shape as the live /find_leads API (api_docs/lead_finder.md)."""
+    names = names or ["demo-call.wav"]
+    custom = any(str(params.get(k) or "").strip()
+                 for k in ("lead_keywords", "business_context", "not_a_lead_criteria"))
+    results = []
+    for i, name in enumerate(names):
+        rng = random.Random(name)
+        url = name.startswith(("http://", "https://"))
+        base = {"index": i, "source": name, "source_type": "url" if url else "file"}
+        if rng.random() < 0.05:
+            results.append({**base, "status": "error", "error": "Could not read the audio file",
+                            "call_summary": None, "customer_intent": None, "is_potential_lead": False,
+                            "lead_quality": "Not a Lead", "confidence_score": 0, "keywords_matched": [],
+                            "other_lead_signals": [], "business_requirements": [],
+                            "justification": None, "tokens_used": 0})
+            continue
+        tokens = rng.randint(2000, 8000)
+        if rng.random() < 0.38:
+            q, summary, intent, kw, sig, req, why = rng.choice(LEAD_CALLS)
+            results.append({**base, "status": "success", "error": None, "call_summary": summary,
+                            "customer_intent": intent, "is_potential_lead": q != "Weak Interest",
+                            "lead_quality": q, "confidence_score": rng.randint(62, 98),
+                            "keywords_matched": kw, "other_lead_signals": sig,
+                            "business_requirements": req, "justification": why, "tokens_used": tokens})
+        else:
+            summary, intent, why = rng.choice(NOT_LEAD_CALLS)
+            results.append({**base, "status": "success", "error": None, "call_summary": summary,
+                            "customer_intent": intent, "is_potential_lead": False,
+                            "lead_quality": "Not a Lead", "confidence_score": rng.randint(80, 100),
+                            "keywords_matched": [], "other_lead_signals": [], "business_requirements": [],
+                            "justification": why, "tokens_used": tokens})
+    ok = [r for r in results if r["status"] == "success"]
+    count = lambda q: sum(r["lead_quality"] == q for r in ok)  # noqa: E731
+    leads = [r for r in ok if r["is_potential_lead"]]
     return {
-        "query": {"industry": industry or "Any", "location": location,
-                  "company_size": params.get("company_size") or "Any"},
-        "total_scanned": rng.randint(1800, 5200),
-        "total_found": len(leads),
-        "avg_score": round(sum(l["score"] for l in leads) / max(len(leads), 1)),
+        "summary": {
+            "criteria_used": "custom" if custom else "default_fedex",
+            "total_calls": len(results), "analyzed": len(ok), "failed": len(results) - len(ok),
+            "potential_leads": len(leads), "strong_leads": count("Strong Lead"),
+            "potential_lead_quality": count("Potential Lead"), "weak_interest": count("Weak Interest"),
+            "not_a_lead": count("Not a Lead"),
+            "total_tokens_used": sum(r["tokens_used"] for r in results),
+        },
         "leads": leads,
+        "results": results,
     }
 
 
 GENERATORS = {
-    "potential-lead-finder": _leads,
     "call-recording-analysis": _analysis,
     "agent-quality-check": lambda p: _quality_check(),
-    "call-recording-transcript": lambda p: _transcript(),
 }
 
 
-async def generate(slug: str, params: dict, filename: str | None = None) -> dict:
+async def generate(slug: str, params: dict, filename: str | None = None,
+                   names: list[str] | None = None) -> dict:
     await _simulate_latency()
+    if slug == "lead-finder":
+        return _lead_finder(params, names)
+    if slug == "call-transcription":
+        return _transcript(params, filename)
     return GENERATORS[slug](params)

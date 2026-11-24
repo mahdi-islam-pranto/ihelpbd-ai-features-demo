@@ -10,6 +10,10 @@
   const isAudio = fileKind === "recordings";
   const steps = JSON.parse(app.dataset.steps || "[]");
   const historyOn = app.dataset.history === "true";
+  const acceptsUrl = app.dataset.acceptsUrl === "true";
+  // Features with their own input panel (e.g. Lead Finder's batch queue) register
+  // window.InputControllers[slug] = { init(api), run(), restore(payload), busy() }.
+  const custom = (window.InputControllers || {})[slug] || null;
 
   const $ = (id) => document.getElementById(id);
   const fileInput = $("fileInput"), dropzone = $("dropzone"), sampleList = $("sampleList");
@@ -17,14 +21,29 @@
   const player = $("player") ? window.createAudioPlayer($("player")) : null;
   const audioPlayer = player?.audio || null, runBtn = $("runBtn"), form = $("inputForm");
   const els = { empty: $("resultEmpty"), loading: $("resultLoading"), body: $("resultBody"), steps: $("progressSteps") };
+  const urlInput = $("urlInput"), urlField = $("urlField"), urlSampleList = $("urlSampleList");
 
   // savedFile: a stored upload from a saved result ({url, name}) - fetched again on re-run
-  const state = { file: null, sample: null, savedFile: null, objectUrl: null, busy: false };
+  // mode: "file" (upload / sample) or "url" (link to the file, for features that accept one)
+  const state = { file: null, sample: null, savedFile: null, url: null, objectUrl: null, busy: false, mode: "file" };
 
   // ---------- Input selection ----------
   function updateRunState() {
-    runBtn.disabled = state.busy || (fileRequired && !(state.file || state.sample || state.savedFile));
+    if (custom) return;                                   // the controller owns the run button
+    const hasInput = state.mode === "url" ? !!state.url : !!(state.file || state.sample || state.savedFile);
+    runBtn.disabled = state.busy || (fileRequired && !hasInput);
   }
+
+  const isHttpUrl = (v) => {
+    try { const u = new URL(v); return (u.protocol === "http:" || u.protocol === "https:") && !!u.host; } catch { return false; }
+  };
+  const urlName = (v) => {
+    try {
+      const u = new URL(v);
+      const last = u.pathname.split("/").filter(Boolean).pop();
+      try { return last ? decodeURIComponent(last) : u.host; } catch { return last || u.host; }
+    } catch { return v; }
+  };
 
   function showSelected(name, src, source) {
     selectedName.textContent = name;
@@ -38,6 +57,10 @@
     state.file = null;
     state.sample = null;
     state.savedFile = null;
+    state.url = null;
+    if (urlInput) urlInput.value = "";
+    urlField?.classList.remove("valid", "invalid");
+    urlSampleList?.querySelectorAll(".sample-chip").forEach((c) => c.classList.remove("active"));
     if (state.objectUrl) URL.revokeObjectURL(state.objectUrl);
     state.objectUrl = null;
     if (fileInput) fileInput.value = "";
@@ -60,6 +83,76 @@
     state.sample = sample.name;
     chip.classList.add("active");
     showSelected(sample.name, isAudio ? sample.url : null);
+  }
+
+  // ---- link input ("Use a link" mode)
+  function setMode(mode) {
+    if (!acceptsUrl) return;
+    state.mode = mode;
+    app.querySelectorAll("[data-src-mode]").forEach((b) => {
+      const on = b.dataset.srcMode === mode;
+      b.classList.toggle("active", on);
+      b.setAttribute("aria-selected", on);
+    });
+    app.querySelectorAll("[data-src-pane]").forEach((p) => p.classList.toggle("hidden", p.dataset.srcPane !== mode));
+    updateRunState();
+  }
+
+  // Only one source is sent, so switching tabs clears the other one.
+  app.querySelectorAll("[data-src-mode]").forEach((b) => b.addEventListener("click", () => {
+    if (state.mode === b.dataset.srcMode) return;
+    clearSelection();
+    setMode(b.dataset.srcMode);
+    if (state.mode === "url") urlInput?.focus();
+  }));
+
+  function pickUrl(url, chip) {
+    clearSelection();
+    urlInput.value = url;
+    state.url = url;
+    urlField.classList.add("valid");
+    chip?.classList.add("active");
+    showSelected(urlName(url), url);
+  }
+
+  urlInput?.addEventListener("input", () => {
+    const v = urlInput.value.trim();
+    const ok = isHttpUrl(v);
+    state.url = ok ? v : null;
+    urlField.classList.toggle("valid", ok);
+    urlField.classList.toggle("invalid", !!v && !ok);
+    urlSampleList?.querySelectorAll(".sample-chip").forEach((c) => c.classList.toggle("active", c.dataset.url === v));
+    if (selectedBox && !selectedBox.classList.contains("hidden")) {   // link changed: drop the old preview
+      player?.clear();
+      selectedBox.classList.add("hidden");
+    }
+    updateRunState();
+  });
+  // preview the audio once the link is complete (blur / Enter)
+  urlInput?.addEventListener("change", () => {
+    if (state.url && selectedBox.classList.contains("hidden")) pickUrl(state.url, urlSampleList?.querySelector(".sample-chip.active"));
+  });
+  urlInput?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && state.url && !runBtn.disabled) { e.preventDefault(); urlInput.blur(); run(); }
+  });
+
+  async function loadUrlSamples() {
+    if (!urlSampleList) return;
+    try {
+      const links = await (await fetch("/api/samples/urls")).json();
+      if (!links.length) return;
+      urlSampleList.innerHTML = `<small class="muted">Sample links:</small>`;
+      links.forEach((l) => {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "sample-chip";
+        chip.title = l.url;
+        chip.dataset.url = l.url;
+        chip.innerHTML = `${UI.icon("link", 12)}<span>${UI.esc(l.name)}</span>`;
+        chip.addEventListener("click", () => pickUrl(l.url, chip));
+        urlSampleList.appendChild(chip);
+      });
+    } catch { /* no sample links */ }
   }
 
   fileInput?.addEventListener("change", () => pickFile(fileInput.files[0]));
@@ -140,14 +233,21 @@
   }
 
   async function run() {
+    if (custom) return custom.run();
     if (form && !form.reportValidity()) return;
     const params = form ? Object.fromEntries(new FormData(form).entries()) : {};
     const fd = new FormData();
     fd.append("params", JSON.stringify(params));
 
+    if (state.mode === "url") {
+      if (!state.url) return UI.toast("Paste a full http(s) link to the recording", "error");
+      fd.set("params", JSON.stringify({ ...params, audio_url: state.url }));   // the link goes instead of a file
+    }
+
     state.busy = true;
     updateRunState();
-    if (state.file) fd.append("file", state.file);
+    if (state.mode === "url") { /* nothing to attach */ }
+    else if (state.file) fd.append("file", state.file);
     else if (state.sample) { fd.append("sample", state.sample); fd.append("sample_kind", fileKind); }
     else if (state.savedFile) {
       // re-running a saved result: fetch its stored recording again
@@ -212,7 +312,7 @@
   }
 
   function renderResult(payload) {
-    const ctx = { audio: audioPlayer, input: payload.input || {} };
+    const ctx = { audio: audioPlayer, input: payload.input || {}, payload };
     let view;
     try {
       view = (window.Renderers[slug] || window.Renderers.fallback)(payload.data, ctx);
@@ -278,7 +378,7 @@
 
   function histItem(it) {
     const tags = (it.tags || []).map((t) => `<span class="tag ${t.tone ? `tag-${t.tone}` : ""}">${UI.esc(t.text)}</span>`).join("");
-    const ico = it.source === "none" ? "sparkles" : isAudio ? "music" : "file";
+    const ico = it.icon ? it.icon : it.source === "none" ? "sparkles" : it.source === "url" ? "link" : isAudio ? "music" : "file";
     return `
       <div class="hist-item" data-id="${it.id}" role="button" tabindex="0">
         <span class="hist-ico">${UI.icon(ico, 13)}</span>
@@ -314,7 +414,7 @@
       }
       const html = data.items.map(histItem).join("");
       if (append) H.list.insertAdjacentHTML("beforeend", html);
-      else H.list.innerHTML = html || `<div class="hist-note muted small">${hist.q ? "No saved results match your search." : "No saved results yet. Every analysis you run is saved here."}</div>`;
+      else H.list.innerHTML = html || `<div class="hist-note muted small">${hist.q ? "No saved results match your search." : "No saved results yet. Every result you get is saved here."}</div>`;
       hist.offset += data.items.length;
       H.count.textContent = data.total || "";
       H.more.classList.toggle("hidden", hist.offset >= data.total);
@@ -326,12 +426,19 @@
 
   // Put the saved inputs back into the panel so the run can be repeated.
   function restoreInput(payload) {
+    if (custom) return custom.restore(payload);
     clearSelection();
     const input = payload.input || {};
     if (form) {
       form.reset();
       [...form.elements].forEach((el) => { if (el.name && input[el.name] != null) el.value = input[el.name]; });
     }
+    if (acceptsUrl && input.audio_url) {
+      setMode("url");
+      const chip = [...(urlSampleList?.querySelectorAll(".sample-chip") || [])].find((c) => c.dataset.url === input.audio_url);
+      return pickUrl(input.audio_url, chip);
+    }
+    setMode("file");
     if (!input.file) return;
     if (payload.source === "sample" && payload.file_url) {
       state.sample = input.file;
@@ -346,7 +453,7 @@
   }
 
   async function openRun(id) {
-    if (state.busy) return;
+    if (state.busy || custom?.busy?.()) return UI.toast("Wait for the current run to finish (or stop it) first", "error");
     $("loadingText").textContent = "Loading saved result…";
     els.steps.innerHTML = "";
     setView("loading");
@@ -400,7 +507,11 @@
 
   // ---------- Init ----------
   updateRunState();
+  const ready = custom?.init({
+    app, slug, runBtn, els, setView, renderResult, animateIn, setRunParam, loadHistory,
+    steps, startProgress, stopProgress, isLive: app.dataset.mode === "live",
+  });
   const initialRun = new URLSearchParams(location.search).get("run");
-  loadSamples().then(() => { if (historyOn && /^\d+$/.test(initialRun || "")) openRun(initialRun); });
+  Promise.all([loadSamples(), loadUrlSamples(), ready]).then(() => { if (historyOn && /^\d+$/.test(initialRun || "")) openRun(initialRun); });
   loadHistory();
 })();

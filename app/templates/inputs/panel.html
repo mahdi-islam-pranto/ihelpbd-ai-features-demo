@@ -4,6 +4,13 @@
 {% if feature.file_kind %}
 {% set is_audio = feature.file_kind == "recordings" %}
 <div class="field-label">{{ "Call recording" if is_audio else "CRM data" }}{% if feature.file_required %} <span class="req">*</span>{% else %} <span class="muted">(optional)</span>{% endif %}</div>
+{% if feature.accepts_url %}
+<div class="src-switch" role="tablist" aria-label="Input source">
+  <button type="button" class="src-opt active" role="tab" aria-selected="true" data-src-mode="file">{{ icon("upload", 13) }} Upload a file</button>
+  <button type="button" class="src-opt" role="tab" aria-selected="false" data-src-mode="url">{{ icon("link", 13) }} Use a link</button>
+</div>
+{% endif %}
+<div data-src-pane="file">
 <label class="dropzone" id="dropzone">
   <input type="file" id="fileInput" hidden
          accept="{{ 'audio/*,.mp3,.wav,.m4a,.ogg,.flac,.webm,.aac' if is_audio else '.csv,.xlsx,.xls,.json' }}">
@@ -14,6 +21,17 @@
 <div class="sample-list" id="sampleList" data-kind="{{ feature.file_kind }}">
   <span class="muted small">Loading samples…</span>
 </div>
+</div>
+{% if feature.accepts_url %}
+<div data-src-pane="url" class="hidden">
+  <label class="url-field" id="urlField">
+    {{ icon("link", 15) }}
+    <input type="url" id="urlInput" placeholder="https://example.com/call-recording.mp3" autocomplete="off" spellcheck="false" aria-label="Link to the recording">
+  </label>
+  <small class="muted url-help">A direct link to the audio file. The AI service downloads it itself, so the link must be reachable from the internet.</small>
+  <div class="sample-list" id="urlSampleList"></div>
+</div>
+{% endif %}
 
 <div class="selected-file hidden" id="selectedFile">
   <div class="selected-meta">
