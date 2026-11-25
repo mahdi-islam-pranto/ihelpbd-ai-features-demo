@@ -1,0 +1,53 @@
+{#- Page for a feature that still runs on its own demo portal (Feature.portal_url).
+    The portal is embedded here until its API + frontend are integrated into this app. -#}
+{% extends "base.html" %}
+{% from "partials/icons.html" import icon %}
+{% block title %}{{ feature.name }} | {{ app_name }}{% endblock %}
+{% block crumbs %}<span class="sep">/</span><span class="muted">{{ feature.category }}</span><span class="sep">/</span><span>{{ feature.name }}</span>{% endblock %}
+
+{% block content %}
+<div class="feature-page theme-{{ feature.theme }}">
+<div class="page-head">
+  <div class="page-head-main">
+    <span class="head-icon">{{ icon(feature.icon, 20) }}</span>
+    <div>
+      <h1>{{ feature.name }} <span class="badge badge-{{ feature.mode }}">{{ feature.status_label }}</span></h1>
+      <p class="muted">{{ feature.tagline }}</p>
+    </div>
+  </div>
+  <a href="{{ feature.portal_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline">Open in new tab {{ icon("external", 12) }}</a>
+</div>
+
+<div class="workspace">
+  <div class="ws-left">
+    <div class="card">
+      <div class="card-head"><h3>{{ icon("info", 14) }} About this feature</h3></div>
+      <p class="small">{{ feature.description }}</p>
+      {% if feature.highlights %}
+      <div class="sub-title">Capabilities</div>
+      <ul class="ticks">{% for h in feature.highlights %}<li>{{ icon("check", 12) }} {{ h }}</li>{% endfor %}</ul>
+      {% endif %}
+      {% if feature.steps %}
+      <div class="sub-title">How it works</div>
+      <ol class="steps">{% for s in feature.steps %}<li>{{ s }}</li>{% endfor %}</ol>
+      {% endif %}
+      {% if feature.use_cases %}
+      <div class="sub-title">Where it helps</div>
+      {% for u in feature.use_cases %}
+      <div class="usecase"><strong>{{ u.title }}</strong><span class="muted">{{ u.text }}</span></div>
+      {% endfor %}
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card ws-right portal-frame-card">
+    <div class="portal-bar">
+      <h3>{{ icon("play", 14) }} Try it</h3>
+      <span class="muted small">Not loading? <a href="{{ feature.portal_url }}" target="_blank" rel="noopener">Open the portal directly</a></span>
+    </div>
+    <iframe class="portal-frame" src="{{ feature.portal_url }}" title="{{ feature.name }}"
+            allow="clipboard-write; microphone" loading="lazy"></iframe>
+  </div>
+</div>
+</div>
+{% endblock %}

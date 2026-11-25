@@ -19,6 +19,8 @@ async def feature_page(request: Request, slug: str):
     feature = FEATURES_BY_SLUG.get(slug)
     if not feature:
         raise HTTPException(status_code=404, detail="Feature not found")
+    if feature.is_portal:   # hosted on its own demo portal for now: embed it
+        return templates.TemplateResponse(request, "portal.html", {"active": slug, "feature": feature})
     idx = FEATURES.index(feature)
     return templates.TemplateResponse(request, "feature.html", {
         "active": slug,

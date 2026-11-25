@@ -252,6 +252,10 @@ GENERATORS = {
 
 async def generate(slug: str, params: dict, filename: str | None = None,
                    names: list[str] | None = None) -> dict:
+    if slug == "crm-ai-planner":            # several agents: let the loading board play out
+        from app.services import crm_planner
+        await _simulate_latency(6.5, 8.5)
+        return crm_planner.demo_response(params)
     await _simulate_latency()
     if slug == "lead-finder":
         return _lead_finder(params, names)

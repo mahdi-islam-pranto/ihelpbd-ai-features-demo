@@ -303,9 +303,84 @@ class LeadFinderRun(RunMixin, Base):
         return (src.get("path"), src.get("name")) if isinstance(src, dict) else (None, None)
 
 
+# =====================================================================
+# CRM AI Planner  (one row = one daily plan; params.crm holds the CRM data sent)
+# =====================================================================
+class CrmPlannerRun(RunMixin, Base):
+    __tablename__ = "crm_planner_runs"
+    __table_args__ = {"comment": "CRM AI Planner results (one row per daily plan)",
+                      "mysql_charset": "utf8mb4", "mysql_collate": "utf8mb4_unicode_ci"}
+
+    # request
+    scenario: Mapped[str | None] = mapped_column(String(40), index=True, comment="demo CRM id or 'custom'")
+    industry: Mapped[str | None] = mapped_column(String(80))
+    user_name: Mapped[str | None] = mapped_column(String(150), index=True)
+    plan_date: Mapped[str | None] = mapped_column(String(20), comment="the CRM's 'today'")
+    record_count: Mapped[int | None] = mapped_column(Integer, comment="CRM records sent")
+    # response highlights
+    plan_items: Mapped[int | None] = mapped_column(Integer)
+    must_not_slip: Mapped[int | None] = mapped_column(Integer)
+    at_risk_leads: Mapped[int | None] = mapped_column(Integer)
+    overdue: Mapped[int | None] = mapped_column(Integer)
+    open_commitments: Mapped[int | None] = mapped_column(Integer)
+    minutes_planned: Mapped[int | None] = mapped_column(Integer)
+    agent_errors: Mapped[int | None] = mapped_column(Integer)
+    total_tokens: Mapped[int | None] = mapped_column(Integer)
+    daily_summary: Mapped[str | None] = mapped_column(Text)
+    plan_text: Mapped[str | None] = mapped_column(Text().with_variant(MEDIUMTEXT(), "mysql"),
+                                                  comment="plan headlines and lead names, for search")
+
+    search_columns = ("user_name", "industry", "scenario", "plan_date", "daily_summary", "plan_text")
+
+    @classmethod
+    def extract(cls, params: dict, data: dict) -> dict:
+        from app.services.crm_planner import COLLECTIONS, scenario_meta
+        crm = params.get("crm") if isinstance(params.get("crm"), dict) else {}
+        ai = data.get("ai_response") if isinstance(data.get("ai_response"), dict) else {}
+        counts = ai.get("counts") if isinstance(ai.get("counts"), dict) else {}
+        num = lambda v: v if isinstance(v, int) and not isinstance(v, bool) else None  # noqa: E731
+        items = lambda k: [x for x in ai.get(k) or [] if isinstance(x, dict)]  # noqa: E731
+        plan, risks = items("today_plan"), items("lead_risk_alerts")
+        tokens = [num(m.get("total_tokens")) for m in data.get("agent_metadata") or [] if isinstance(m, dict)]
+        lines = [" | ".join(filter(None, [str(p.get("time_slot") or ""), p.get("lead_name"), p.get("headline")]))
+                 for p in plan] + [f"risk | {r.get('lead_name')} | {r.get('issue')}" for r in risks]
+        return {
+            "scenario": cut(params.get("scenario"), 40),
+            "industry": cut(scenario_meta(params.get("scenario")).get("industry")
+                            or ("Custom CRM" if params.get("scenario") == "custom" else None), 80),
+            "user_name": cut(crm.get("user_name"), 150),
+            "plan_date": cut(crm.get("today"), 20),
+            "record_count": sum(len(crm.get(c) or []) for c in COLLECTIONS) or None,
+            "plan_items": len(plan),
+            "must_not_slip": len(items("must_not_slip")),
+            "at_risk_leads": num(counts.get("at_risk_leads")) if counts.get("at_risk_leads") is not None else len(risks),
+            "overdue": num(counts.get("overdue")),
+            "open_commitments": num(counts.get("open_commitments")),
+            "minutes_planned": num(counts.get("total_minutes_planned")),
+            "agent_errors": len(data.get("errors") or []),
+            "total_tokens": sum(t for t in tokens if t) or None,
+            "daily_summary": ai.get("daily_summary") or None,
+            "plan_text": "\n".join(lines) or None,
+        }
+
+    def card(self) -> dict:
+        tags = []
+        if self.must_not_slip:
+            tags.append({"text": f"{self.must_not_slip} must-do", "tone": "red"})
+        if self.at_risk_leads:
+            tags.append({"text": f"{self.at_risk_leads} at risk", "tone": "amber"})
+        if self.plan_items:
+            tags.append({"text": f"{self.plan_items} in plan", "tone": "blue"})
+        if self.agent_errors:
+            tags.append({"text": f"{self.agent_errors} agent error{'' if self.agent_errors == 1 else 's'}", "tone": "red"})
+        title = " · ".join(filter(None, [self.user_name, self.industry])) or f"Plan #{self.id}"
+        return {"title": title, "subtitle": cut(self.daily_summary or self.plan_date, 160), "tags": tags, "icon": "calendar"}
+
+
 # feature slug -> table model. Features not listed here aren't saved yet.
 HISTORY_MODELS: dict[str, type[RunMixin]] = {
     "call-recording-analysis": CallAnalysisRun,
     "call-transcription": TranscriptionRun,
     "lead-finder": LeadFinderRun,
+    "crm-ai-planner": CrmPlannerRun,
 }

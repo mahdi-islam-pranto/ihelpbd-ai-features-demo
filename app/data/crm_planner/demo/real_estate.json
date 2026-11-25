@@ -1,0 +1,93 @@
+{
+  "ai_response": {
+    "must_not_slip": [
+      {"lead_name": "Ayesha Karim", "lead_id": "L101", "source_type": "message", "source_id": "M601", "headline": "Send Ayesha the payment schedule and bank details", "consequence": "BDT 10 lakh booking slips to the rival developer"},
+      {"lead_name": "Mizanur Rahman", "lead_id": "L105", "source_type": "message", "source_id": "M602", "headline": "Get the written possession date and photos to Mizanur", "consequence": "Public RAJUK complaint and buyer-group backlash"},
+      {"lead_name": "Imtiaz Kazi", "lead_id": "L104", "source_type": "task", "source_id": "T205", "headline": "Send Kazi Enterprises the revised commercial proposal", "consequence": "Board only sees the Banani option on the 17th"}
+    ],
+    "daily_summary": "A high-stakes day: Ayesha is ready to pay and only needs the payment schedule, Kazi's board pack closes tomorrow, and Mizanur will go public without a written date. The 11:00 site visit clashes with the 11:30 Kazi call, so move the call.",
+    "today_plan": [
+      {"source_type": "message", "source_id": "M601", "lead_id": "L101", "lead_name": "Ayesha Karim", "channel": "WhatsApp", "headline": "Send payment schedule PDF + bank details", "why": "She promised to transfer today; her bank needs both documents first.", "steps": ["Export the B4 payment schedule PDF", "Add company bank details and SWIFT code", "Send on WhatsApp and confirm receipt"], "priority_score": 100, "estimated_minutes": 10, "time_slot": "10:00-10:10", "is_fixed_time": false},
+      {"source_type": "task", "source_id": "T205", "lead_id": "L104", "lead_name": "Imtiaz Kazi", "channel": "Email", "headline": "Send revised commercial proposal to Kazi", "why": "Overdue since Monday and the board pack closes Thursday.", "steps": ["Add fit-out allowance and rent-free months", "Include parking for 12 and generator specs per floor", "Email Imtiaz and propose a new call time"], "priority_score": 95, "estimated_minutes": 30, "time_slot": "10:10-10:40", "is_fixed_time": false},
+      {"source_type": "followup", "source_id": "F303", "lead_id": "L107", "lead_name": "Dr. Habibur Rahman", "channel": "SMS", "headline": "Reply yes/no on the second parking slot", "why": "One-line answer he has waited a day for.", "steps": ["Check slot availability for B7", "SMS the answer and price"], "priority_score": 45, "estimated_minutes": 5, "time_slot": "10:40-10:45", "is_fixed_time": false},
+      {"source_type": "task", "source_id": "T201", "lead_id": "L102", "lead_name": "Shafiqul Islam", "channel": "Meeting", "headline": "Site visit: Gulshan duplex D2 with Shafiqul & Rumana", "why": "They book this month if the handover is guaranteed by June.", "steps": ["Bring the signed handover timeline", "Show rooftop, generator and parking", "Walk the route to the school on Road 90"], "priority_score": 95, "estimated_minutes": 90, "time_slot": "11:00", "is_fixed_time": true},
+      {"source_type": "task", "source_id": "T202", "lead_id": "L104", "lead_name": "Imtiaz Kazi", "channel": "Call", "headline": "Proposal walkthrough call with Imtiaz", "why": "Clashes with the site visit; move to 14:00 after he has the proposal.", "steps": ["Reschedule to 14:00", "Walk through fit-out and rent-free terms"], "priority_score": 85, "estimated_minutes": 30, "time_slot": "11:30", "is_fixed_time": true},
+      {"source_type": "message", "source_id": "M604", "lead_id": "L108", "lead_name": "Sabbir Ahmed", "channel": "WhatsApp", "headline": "Reply to Sabbir's referral enquiry", "why": "Warm referral from Shafiqul waiting 2 days: 4-bed, under 4 crore.", "steps": ["Thank him and mention Shafiqul", "Offer two call times this week"], "priority_score": 75, "estimated_minutes": 5, "time_slot": "13:30-13:35", "is_fixed_time": false},
+      {"source_type": "task", "source_id": "T203", "lead_id": "L103", "lead_name": "Tahmina Chowdhury", "channel": "Email", "headline": "Email allotment letter + NOC to the bank", "why": "Bank needs them by Thursday or the loan slips a month.", "steps": ["Attach the allotment letter and NOC", "Copy Tahmina and Rashed"], "priority_score": 90, "estimated_minutes": 15, "time_slot": "15:00", "is_fixed_time": true},
+      {"source_type": "task", "source_id": "T206", "lead_id": "L105", "lead_name": "Mizanur Rahman", "channel": "Call", "headline": "Possession update call with Mizanur", "why": "He expects a written date and an answer on rent support today.", "steps": ["Get the signed date from the project director first", "Send tower A photos before calling", "Share management's rent support answer"], "priority_score": 95, "estimated_minutes": 20, "time_slot": "16:30", "is_fixed_time": true},
+      {"source_type": "task", "source_id": "T204", "lead_id": "L101", "lead_name": "Ayesha Karim", "channel": "Call", "headline": "Video walkthrough of B4 with Ayesha", "why": "Final step before her booking transfer; morning for her in Toronto.", "steps": ["Test the WhatsApp video beforehand", "Answer the 3% discount question"], "priority_score": 90, "estimated_minutes": 30, "time_slot": "18:30", "is_fixed_time": true}
+    ],
+    "lead_risk_alerts": [
+      {"lead_name": "Mizanur Rahman", "lead_id": "L105", "issue": "Threatens a RAJUK complaint and public posts over the possession delay", "severity": "high", "suggested_recovery_step": "Send the signed possession date and photos before the 16:30 call", "evidence": [
+        {"source_type": "call", "source_id": "C503", "lead_id": "L105", "lead_name": "Mizanur Rahman", "note": "Third angry call: paying rent and EMI together"},
+        {"source_type": "message", "source_id": "M602", "lead_id": "L105", "lead_name": "Mizanur Rahman", "note": "Final reminder email, deadline Thursday"},
+        {"source_type": "note", "source_id": "N403", "lead_id": "L105", "lead_name": "Mizanur Rahman", "note": "Already posted in a Facebook buyers group"}]},
+      {"lead_name": "Ayesha Karim", "lead_id": "L101", "issue": "Ready to pay but comparing with a rival offering 3% off", "severity": "high", "suggested_recovery_step": "Send the schedule now and bring a discount answer to the 18:30 call", "evidence": [
+        {"source_type": "call", "source_id": "C502", "lead_id": "L101", "lead_name": "Ayesha Karim", "note": "Promised the schedule the same night"},
+        {"source_type": "followup", "source_id": "F301", "lead_id": "L101", "lead_name": "Ayesha Karim", "note": "Payment schedule follow-up overdue"}]},
+      {"lead_name": "Imtiaz Kazi", "lead_id": "L104", "issue": "Proposal 2 days late; board decides on the 17th against a Banani tower", "severity": "high", "suggested_recovery_step": "Send the proposal this morning and rebook the call", "evidence": [
+        {"source_type": "task", "source_id": "T205", "lead_id": "L104", "lead_name": "Imtiaz Kazi", "note": "Revised proposal task overdue since Monday"},
+        {"source_type": "message", "source_id": "M603", "lead_id": "L104", "lead_name": "Imtiaz Kazi", "note": "Board pack closes Thursday"}]},
+      {"lead_name": "Farzana Haque", "lead_id": "L106", "issue": "32 days without contact although the new offer fits her budget", "severity": "medium", "suggested_recovery_step": "Call her this week with the festive price", "evidence": [
+        {"source_type": "note", "source_id": "N405", "lead_id": "L106", "lead_name": "Farzana Haque", "note": "Price was 15% above budget"},
+        {"source_type": "followup", "source_id": "F302", "lead_id": "L106", "lead_name": "Farzana Haque", "note": "Re-engage follow-up snoozed"}]}
+    ],
+    "open_commitments": [
+      {"call_id": "C502", "lead_id": "L101", "lead_name": "Ayesha Karim", "promised_by": "user", "commitment": "Send the payment schedule on WhatsApp the same night", "due_hint": "Last night (2026-10-13)", "status": "overdue", "covered_by": {"source_type": "followup", "source_id": "F301", "lead_id": "L101", "lead_name": "Ayesha Karim", "note": "Send payment schedule and bank details"}, "suggested_action": "Send it first thing this morning"},
+      {"call_id": "C502", "lead_id": "L101", "lead_name": "Ayesha Karim", "promised_by": "user", "commitment": "Ask the director about matching the 3% upfront discount", "due_hint": null, "status": "unknown", "covered_by": null, "suggested_action": "Get an answer before the 18:30 walkthrough"},
+      {"call_id": "C503", "lead_id": "L105", "lead_name": "Mizanur Rahman", "promised_by": "user", "commitment": "Get a written possession date from the project director", "due_hint": "This week", "status": "pending", "covered_by": {"source_type": "task", "source_id": "T206", "lead_id": "L105", "lead_name": "Mizanur Rahman", "note": "Possession update call at 16:30"}, "suggested_action": "Have the signed letter ready before the call"},
+      {"call_id": "C503", "lead_id": "L105", "lead_name": "Mizanur Rahman", "promised_by": "user", "commitment": "Raise rent support with management and call back", "due_hint": "Tomorrow afternoon (2026-10-14)", "status": "pending", "covered_by": {"source_type": "task", "source_id": "T206", "lead_id": "L105", "lead_name": "Mizanur Rahman", "note": "Possession update call"}, "suggested_action": "Get management's decision before 16:30"},
+      {"call_id": "C504", "lead_id": "L104", "lead_name": "Imtiaz Kazi", "promised_by": "user", "commitment": "Send the revised proposal with generator specs", "due_hint": "Monday (2026-10-12, 2 day(s) ago)", "status": "overdue", "covered_by": {"source_type": "task", "source_id": "T205", "lead_id": "L104", "lead_name": "Imtiaz Kazi", "note": "Revised commercial proposal"}, "suggested_action": "Send it this morning"},
+      {"call_id": "C501", "lead_id": "L102", "lead_name": "Shafiqul Islam", "promised_by": "user", "commitment": "Bring the handover timeline signed by the project director", "due_hint": "Today 11:00", "status": "pending", "covered_by": {"source_type": "task", "source_id": "T201", "lead_id": "L102", "lead_name": "Shafiqul Islam", "note": "Site visit"}, "suggested_action": "Collect the signed copy before leaving for the visit"}
+    ],
+    "overdue_items": [
+      {"source_type": "followup", "source_id": "F302", "lead_id": "L106", "lead_name": "Farzana Haque", "note": "Re-engage follow-up 7 days overdue (snoozed)"},
+      {"source_type": "task", "source_id": "T205", "lead_id": "L104", "lead_name": "Imtiaz Kazi", "note": "Revised proposal email 2 days late"},
+      {"source_type": "followup", "source_id": "F301", "lead_id": "L101", "lead_name": "Ayesha Karim", "note": "Payment schedule promised last night"},
+      {"source_type": "followup", "source_id": "F305", "lead_id": "L105", "lead_name": "Mizanur Rahman", "note": "Construction photos 1 day overdue"},
+      {"source_type": "message", "source_id": "M603", "lead_id": "L104", "lead_name": "Imtiaz Kazi", "note": "Unanswered email, 31h waiting"},
+      {"source_type": "message", "source_id": "M604", "lead_id": "L108", "lead_name": "Sabbir Ahmed", "note": "Unanswered WhatsApp referral, 46h waiting"}
+    ],
+    "quick_wins": [
+      {"source_type": "followup", "source_id": "F303", "lead_id": "L107", "lead_name": "Dr. Habibur Rahman", "note": "Yes/no on the second parking slot"},
+      {"source_type": "message", "source_id": "M604", "lead_id": "L108", "lead_name": "Sabbir Ahmed", "note": "Reply to the referral and book a call"},
+      {"source_type": "followup", "source_id": "F305", "lead_id": "L105", "lead_name": "Mizanur Rahman", "note": "Email this month's tower A photos"}
+    ],
+    "upcoming_preparation_items": [
+      {"source_type": "task", "source_id": "T207", "lead_id": "L103", "lead_name": "Tahmina Chowdhury", "note": "Loan signing on 16 Oct: print the agreement set"},
+      {"source_type": "followup", "source_id": "F304", "lead_id": "L102", "lead_name": "Shafiqul Islam", "note": "Send the booking form after today's visit"}
+    ],
+    "key_notes_insights": [
+      {"lead_id": "L102", "lead_name": "Shafiqul Islam", "source_id": "N402", "insight": "Wife decides; trust in the handover date is the whole sale", "suggested_action": "Speak to Rumana's priorities: school and handover"},
+      {"lead_id": "L101", "lead_name": "Ayesha Karim", "source_id": "N401", "insight": "Ready to pay this week; only call after 8pm Dhaka", "suggested_action": "Keep everything on WhatsApp"},
+      {"lead_id": "L104", "lead_name": "Imtiaz Kazi", "source_id": "N404", "insight": "Biggest commercial deal of the quarter, board on the 17th", "suggested_action": "Match the rent-free period"},
+      {"lead_id": "L106", "lead_name": "Farzana Haque", "source_id": "N405", "insight": "The festive offer now fits her budget", "suggested_action": "Lead with the new price"}
+    ],
+    "call_insights": [
+      {"call_id": "C501", "lead_id": "L102", "lead_name": "Shafiqul Islam", "summary": "Price is fine; the only worry is the handover after a bad past experience. Will book this month if June handover is guaranteed.", "sentiment": "positive", "buying_signals": ["price is fine", "book this month"], "objections": ["handover delay risk"], "competitor_mentions": [], "unanswered_questions": ["Is the school really within walking distance?"], "stated_timeline": "Book this month"},
+      {"call_id": "C502", "lead_id": "L101", "lead_name": "Ayesha Karim", "summary": "Decided on B4 and ready to transfer the booking money once she has the payment schedule and bank details. Asked to match a rival's 3% discount.", "sentiment": "positive", "buying_signals": ["decided on B4", "ready to send booking money"], "objections": ["rival offers 3% upfront discount"], "competitor_mentions": ["Another Bashundhara developer"], "unanswered_questions": ["Can you match the 3% discount?"], "stated_timeline": "Transfer this week"},
+      {"call_id": "C503", "lead_id": "L105", "lead_name": "Mizanur Rahman", "summary": "Third complaint about possession slipping to December. Demands a signed date this week and rent support, or he goes to RAJUK.", "sentiment": "negative", "buying_signals": [], "objections": ["repeated delays", "paying rent and EMI"], "competitor_mentions": [], "unanswered_questions": ["Will there be rent support?"], "stated_timeline": "Written date this week"},
+      {"call_id": "C504", "lead_id": "L104", "lead_name": "Imtiaz Kazi", "summary": "Likes the location but Banani offers 3 months rent-free plus fit-out. Needs a revised proposal for the board on the 17th.", "sentiment": "neutral", "buying_signals": ["likes the location", "board decision on the 17th"], "objections": ["competitor rent-free offer"], "competitor_mentions": ["Banani tower"], "unanswered_questions": ["Backup power capacity per floor?"], "stated_timeline": "Board meets 17 Oct"},
+      {"call_id": "C505", "lead_id": "L103", "lead_name": "Tahmina Chowdhury", "summary": "Bank needs the allotment letter and NOC by Thursday or the loan and its rate slip to next month.", "sentiment": "neutral", "buying_signals": ["loan approved"], "objections": [], "competitor_mentions": [], "unanswered_questions": [], "stated_timeline": "Documents by Thursday"}
+    ],
+    "conversation_insights": [
+      {"thread_id": "TH_301", "message_id": "M601", "lead_id": "L101", "lead_name": "Ayesha Karim", "channel": "WhatsApp", "summary": "Still waiting for the payment schedule; her bank wants to process the transfer today.", "sentiment": "positive", "awaiting_reply_from": "user", "hours_waiting": 3, "decided_facts": ["Chose apartment B4"], "suggested_reply_points": ["Attach the payment schedule PDF", "Share bank details and SWIFT", "Confirm the 18:30 video call"]},
+      {"thread_id": "TH_302", "message_id": "M602", "lead_id": "L105", "lead_name": "Mizanur Rahman", "channel": "Email", "summary": "Final reminder: written possession date and photos by Thursday or escalation to RAJUK.", "sentiment": "negative", "awaiting_reply_from": "user", "hours_waiting": 13, "decided_facts": ["Deadline Thursday"], "suggested_reply_points": ["Acknowledge and apologise", "Promise the signed date today"]},
+      {"thread_id": "TH_303", "message_id": "M603", "lead_id": "L104", "lead_name": "Imtiaz Kazi", "channel": "Email", "summary": "Board pack closes Thursday; without the proposal only the Banani option is presented.", "sentiment": "neutral", "awaiting_reply_from": "user", "hours_waiting": 31, "decided_facts": ["Board pack closes Thursday"], "suggested_reply_points": ["Send the revised proposal", "Offer a call at 14:00"]},
+      {"thread_id": "TH_304", "message_id": "M604", "lead_id": "L108", "lead_name": "Sabbir Ahmed", "channel": "WhatsApp", "summary": "New referral wants a 4-bed in Gulshan or Baridhara under 4 crore.", "sentiment": "positive", "awaiting_reply_from": "user", "hours_waiting": 46, "decided_facts": ["Budget under 4 crore"], "suggested_reply_points": ["Thank him for reaching out", "Share two matching units", "Book a call"]},
+      {"thread_id": "TH_307", "message_id": "M607", "lead_id": "L106", "lead_name": "Farzana Haque", "channel": "Email", "summary": "Festive offer email sent, no reply for over 3 weeks.", "sentiment": "neutral", "awaiting_reply_from": "lead", "hours_waiting": 576, "decided_facts": [], "suggested_reply_points": ["Switch to a phone call", "Mention the offer deadline"]}
+    ],
+    "workload_insights": {"meetings_count": 1, "calls_count": 3, "followups_due_today_count": 1, "emails_count": 2, "busiest_hour_range": "10:00-12:30", "free_time_slots": ["12:30-13:30", "13:35-15:00", "15:15-16:30", "16:50-18:30"], "overload_warning": "The 11:00 site visit runs past the 11:30 Kazi call - reschedule the call."},
+    "counts": {"at_risk_leads": 4, "overdue": 6, "quick_wins": 3, "prep_items": 2, "note_signals": 4, "open_commitments": 6, "awaiting_your_reply": 4, "total_minutes_planned": 235},
+    "schedule_conflicts": ["11:00 site visit (90 min) overlaps the 11:30 call with Imtiaz Kazi"],
+    "productivity_tip": "Send Ayesha and Kazi their documents before you leave for the 11:00 visit - both can move forward while you're on site.",
+    "call_prep_briefs": []
+  },
+  "agent_metadata": [
+    {"agent": "call_agent[1]", "model": "gpt-4.1-mini", "input_tokens": 7920, "output_tokens": 1810, "total_tokens": 9730, "duration_ms": 19870, "items_analyzed": 6},
+    {"agent": "conversation_agent[1]", "model": "gpt-4.1-mini", "input_tokens": 3980, "output_tokens": 1302, "total_tokens": 5282, "duration_ms": 12640, "items_analyzed": 8},
+    {"agent": "task_agent", "model": "gpt-4.1-mini", "input_tokens": 5870, "output_tokens": 1455, "total_tokens": 7325, "duration_ms": 17310, "items_analyzed": 18},
+    {"agent": "synthesizer", "model": "gpt-4.1-mini", "input_tokens": 10840, "output_tokens": 2410, "total_tokens": 13250, "duration_ms": 16980, "items_analyzed": null}
+  ],
+  "errors": []
+}

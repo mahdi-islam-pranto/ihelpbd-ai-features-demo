@@ -16,6 +16,7 @@ from app.features import FEATURES, FEATURES_BY_SLUG
 from app.db import database
 from app.db.database import DatabaseUnavailable
 from app.services import history
+from app.services import crm_planner
 from app.services import leads as lead_batch
 from app.services.api_client import RunInput, UpstreamError, run_feature
 
@@ -32,6 +33,12 @@ MAX_UPLOAD_MB = 100
 BATCH_MAX_CALLS = 1000     # calls in one batch run
 BATCH_MAX_CHUNK = 20       # calls per request (the browser sends a big batch in chunks)
 SAMPLE_URLS_FILE = SAMPLE_RECORDINGS_DIR / "urls.txt"
+
+# Features whose browser params are expanded/validated server side before the run:
+# fn(params, live) -> params to send and save; raises ValueError (-> HTTP 400).
+PARAM_PREPARERS = {
+    "crm-ai-planner": crm_planner.prepare,
+}
 
 
 def _url_name(url: str) -> str:
@@ -53,6 +60,12 @@ async def health():
 @router.get("/features")
 async def list_features():
     return [f.public_dict() for f in FEATURES]
+
+
+@router.get("/crm-planner/scenarios")
+async def crm_planner_scenarios():
+    """Demo CRMs for the CRM AI Planner (meta + full CRM data for the preview)."""
+    return await run_in_threadpool(crm_planner.scenario_list)
 
 
 @router.get("/samples/urls")
@@ -98,7 +111,7 @@ async def run(
     params: str = Form("{}"),
 ):
     feature = FEATURES_BY_SLUG.get(slug)
-    if not feature:
+    if not feature or feature.is_portal:
         raise HTTPException(404, "Feature not found")
     if feature.batch:
         raise HTTPException(400, f"Use /api/features/{slug}/batch for this feature.")
@@ -107,6 +120,13 @@ async def run(
         parsed = json.loads(params or "{}")
     except json.JSONDecodeError:
         raise HTTPException(400, "Invalid params JSON")
+    if not isinstance(parsed, dict):
+        raise HTTPException(400, "Invalid params JSON")
+    if prepare := PARAM_PREPARERS.get(slug):
+        try:
+            parsed = prepare(parsed, feature.is_live)
+        except ValueError as exc:
+            raise HTTPException(400, str(exc))
 
     file_bytes = filename = ctype = None
     source = "none"

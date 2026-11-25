@@ -1,0 +1,93 @@
+{
+  "ai_response": {
+    "must_not_slip": [
+      {"lead_name": "Rezaul Karim", "lead_id": "L301", "source_type": "followup", "source_id": "F405", "headline": "File the amended invoice with customs before 13:00", "consequence": "Container misses the 6 Nov vessel: 8% buyer penalty"},
+      {"lead_name": "Mehnaz Sultana", "lead_id": "L302", "source_type": "task", "source_id": "T303", "headline": "Submit the Nova Pharma RFQ by 17:00", "consequence": "Out of a 40-ton pharma tender, no extensions"},
+      {"lead_name": "Sarah Collins", "lead_id": "L304", "source_type": "message", "source_id": "M701", "headline": "Give Sarah a confirmed ETA and vessel today", "consequence": "Air freight at our cost for PO 88213"}
+    ],
+    "daily_summary": "Customs comes first: the amended Apex invoice must be filed before 1pm, then Sarah gets her ETA. The Nova Pharma RFQ closes at 5pm with no extension. BuildMax is the quiet risk - finance meets Thursday and the rates are already late.",
+    "today_plan": [
+      {"source_type": "followup", "source_id": "F405", "lead_id": "L301", "lead_name": "Rezaul Karim", "channel": "Task", "headline": "File amended commercial invoice via the CHA agent", "why": "Customs assesses today only if it's filed before 1pm.", "steps": ["Get the corrected invoice (HS 6110) from Apex", "Send to the CHA agent and confirm filing"], "priority_score": 100, "estimated_minutes": 20, "time_slot": "09:00-09:20", "is_fixed_time": false},
+      {"source_type": "task", "source_id": "T301", "lead_id": "L301", "lead_name": "Rezaul Karim", "channel": "Call", "headline": "Customs hold update with Rezaul", "why": "His MD is watching; confirm the filing and the vessel plan.", "steps": ["Confirm the amended invoice is filed", "Agree on the update for Sarah"], "priority_score": 95, "estimated_minutes": 15, "time_slot": "09:30", "is_fixed_time": true},
+      {"source_type": "message", "source_id": "M701", "lead_id": "L304", "lead_name": "Sarah Collins", "channel": "Email", "headline": "Email Sarah the ETA and vessel for PO 88213", "why": "Stores launch 15 Nov; otherwise air freight at our cost.", "steps": ["Confirm the 6 Nov vessel booking", "Send ETA, vessel name and customs status"], "priority_score": 95, "estimated_minutes": 15, "time_slot": "09:45-10:00", "is_fixed_time": false},
+      {"source_type": "message", "source_id": "M703", "lead_id": "L303", "lead_name": "Hasan Mahmud", "channel": "WhatsApp", "headline": "Tell Hasan the breakdown is coming at 14:30", "why": "His team is holding our October invoice.", "steps": ["Acknowledge his message", "Confirm the 14:30 call"], "priority_score": 70, "estimated_minutes": 5, "time_slot": "10:00-10:05", "is_fixed_time": false},
+      {"source_type": "task", "source_id": "T305", "lead_id": "L305", "lead_name": "Tariq Aziz", "channel": "Email", "headline": "Send BuildMax the revised 2027 rates", "why": "Promised by 31 Oct; finance decides Thursday.", "steps": ["Build a volume-tier rate sheet", "Highlight zero missed slots this year"], "priority_score": 85, "estimated_minutes": 30, "time_slot": "10:05-10:35", "is_fixed_time": false},
+      {"source_type": "task", "source_id": "T302", "lead_id": "L302", "lead_name": "Mehnaz Sultana", "channel": "Meeting", "headline": "Cold-chain session with Nova Pharma QA", "why": "QA weighs temperature evidence over price.", "steps": ["Show a sample temperature log report", "Walk through GDP certification"], "priority_score": 90, "estimated_minutes": 60, "time_slot": "11:00", "is_fixed_time": true},
+      {"source_type": "task", "source_id": "T307", "lead_id": "L306", "lead_name": "Nabila Rahman", "channel": "Call", "headline": "Intro call: GreenLeaf trial to London", "why": "Overlaps the Nova session; move to 12:15.", "steps": ["Reschedule to 12:15", "Qualify volume and sea vs air"], "priority_score": 60, "estimated_minutes": 20, "time_slot": "11:30", "is_fixed_time": true},
+      {"source_type": "followup", "source_id": "F403", "lead_id": "L303", "lead_name": "Hasan Mahmud", "channel": "Email", "headline": "Prepare the demurrage breakdown", "why": "Needed before the 14:30 call; waive it if the delay was ours.", "steps": ["Pull document timestamps", "Build a day-by-day table"], "priority_score": 80, "estimated_minutes": 30, "time_slot": "13:30-14:00", "is_fixed_time": false},
+      {"source_type": "task", "source_id": "T304", "lead_id": "L303", "lead_name": "Hasan Mahmud", "channel": "Call", "headline": "Resolve the demurrage dispute with Hasan", "why": "A 7-year customer; the invoice payment depends on it.", "steps": ["Walk through the timeline", "Agree a waiver or a split"], "priority_score": 85, "estimated_minutes": 20, "time_slot": "14:30", "is_fixed_time": true},
+      {"source_type": "task", "source_id": "T303", "lead_id": "L302", "lead_name": "Mehnaz Sultana", "channel": "Email", "headline": "Submit the Nova Pharma RFQ", "why": "Hard deadline at 5pm, competing with two global forwarders.", "steps": ["Attach the GDP certificate and temperature log", "Final price check", "Submit by 16:30"], "priority_score": 100, "estimated_minutes": 60, "time_slot": "15:00-16:00", "is_fixed_time": false}
+    ],
+    "lead_risk_alerts": [
+      {"lead_name": "Rezaul Karim", "lead_id": "L301", "issue": "Container held at customs; missing the vessel costs Apex an 8% penalty", "severity": "high", "suggested_recovery_step": "File the amended invoice before 13:00 and update Rezaul's MD", "evidence": [
+        {"source_type": "note", "source_id": "N501", "lead_id": "L301", "lead_name": "Rezaul Karim", "note": "HS code mismatch; MD following personally"},
+        {"source_type": "message", "source_id": "M706", "lead_id": "L301", "lead_name": "Rezaul Karim", "note": "CHA deadline 1pm today"}]},
+      {"lead_name": "Tariq Aziz", "lead_id": "L305", "issue": "Renewal worth BDT 1.8 crore at risk: rates late, competitor 6% cheaper", "severity": "high", "suggested_recovery_step": "Send volume-tier rates today and call before Thursday", "evidence": [
+        {"source_type": "message", "source_id": "M705", "lead_id": "L305", "lead_name": "Tariq Aziz", "note": "Will present only the other quote without rates"},
+        {"source_type": "followup", "source_id": "F402", "lead_id": "L305", "lead_name": "Tariq Aziz", "note": "Renewal follow-up snoozed"},
+        {"source_type": "note", "source_id": "N503", "lead_id": "L305", "lead_name": "Tariq Aziz", "note": "Competitor 6% lower per container"}]},
+      {"lead_name": "Hasan Mahmud", "lead_id": "L303", "issue": "Demurrage dispute is blocking payment of our October invoice", "severity": "medium", "suggested_recovery_step": "Share the breakdown and settle it on the 14:30 call", "evidence": [
+        {"source_type": "call", "source_id": "C603", "lead_id": "L303", "lead_name": "Hasan Mahmud", "note": "Says our documents were late"},
+        {"source_type": "message", "source_id": "M703", "lead_id": "L303", "lead_name": "Hasan Mahmud", "note": "Accounts holding our invoice"}]},
+      {"lead_name": "Sarah Collins", "lead_id": "L304", "issue": "EU buyer escalating; contract makes us pay air freight if late", "severity": "medium", "suggested_recovery_step": "Send a confirmed ETA this morning", "evidence": [
+        {"source_type": "message", "source_id": "M701", "lead_id": "L304", "lead_name": "Sarah Collins", "note": "Needs ETA and vessel today"},
+        {"source_type": "followup", "source_id": "F401", "lead_id": "L304", "lead_name": "Sarah Collins", "note": "ETA follow-up overdue"}]}
+    ],
+    "open_commitments": [
+      {"call_id": "C601", "lead_id": "L301", "lead_name": "Rezaul Karim", "promised_by": "user", "commitment": "File the amended commercial invoice by Tuesday noon", "due_hint": "Today 12:00 (2026-11-03)", "status": "pending", "covered_by": {"source_type": "followup", "source_id": "F405", "lead_id": "L301", "lead_name": "Rezaul Karim", "note": "File via the CHA agent before 13:00"}, "suggested_action": "File it first thing this morning"},
+      {"call_id": "C601", "lead_id": "L301", "lead_name": "Rezaul Karim", "promised_by": "user", "commitment": "Email Sarah the revised ETA and vessel details", "due_hint": "Yesterday (2026-11-02)", "status": "overdue", "covered_by": {"source_type": "followup", "source_id": "F401", "lead_id": "L304", "lead_name": "Sarah Collins", "note": "Revised ETA follow-up"}, "suggested_action": "Send it right after the filing is confirmed"},
+      {"call_id": "C602", "lead_id": "L302", "lead_name": "Mehnaz Sultana", "promised_by": "user", "commitment": "Share a sample temperature log report", "due_hint": "With the RFQ, today 17:00", "status": "pending", "covered_by": {"source_type": "task", "source_id": "T303", "lead_id": "L302", "lead_name": "Mehnaz Sultana", "note": "RFQ submission"}, "suggested_action": "Show it in the 11:00 session and attach it to the RFQ"},
+      {"call_id": "C603", "lead_id": "L303", "lead_name": "Hasan Mahmud", "promised_by": "user", "commitment": "Send a day-by-day demurrage breakdown, waive if our fault", "due_hint": "Tuesday (2026-11-03)", "status": "pending", "covered_by": {"source_type": "followup", "source_id": "F403", "lead_id": "L303", "lead_name": "Hasan Mahmud", "note": "Demurrage breakdown"}, "suggested_action": "Send it before the 14:30 call"},
+      {"call_id": "C604", "lead_id": "L305", "lead_name": "Tariq Aziz", "promised_by": "user", "commitment": "Send revised rates with a volume tier by 31 Oct", "due_hint": "2026-10-31, 3 day(s) ago", "status": "overdue", "covered_by": {"source_type": "task", "source_id": "T305", "lead_id": "L305", "lead_name": "Tariq Aziz", "note": "Revised contract rates"}, "suggested_action": "Send today and call Tariq before Thursday"},
+      {"call_id": "C605", "lead_id": "L306", "lead_name": "Nabila Rahman", "promised_by": "user", "commitment": "Email the rate card and document list", "due_hint": null, "status": "pending", "covered_by": {"source_type": "followup", "source_id": "F404", "lead_id": "L306", "lead_name": "Nabila Rahman", "note": "UK rate card"}, "suggested_action": "Send before the intro call"}
+    ],
+    "overdue_items": [
+      {"source_type": "followup", "source_id": "F402", "lead_id": "L305", "lead_name": "Tariq Aziz", "note": "Renewal follow-up 6 days overdue (snoozed)"},
+      {"source_type": "task", "source_id": "T305", "lead_id": "L305", "lead_name": "Tariq Aziz", "note": "Revised rates email 3 days late"},
+      {"source_type": "followup", "source_id": "F401", "lead_id": "L304", "lead_name": "Sarah Collins", "note": "ETA update 1 day overdue"},
+      {"source_type": "message", "source_id": "M705", "lead_id": "L305", "lead_name": "Tariq Aziz", "note": "Unanswered email, 39h waiting"},
+      {"source_type": "message", "source_id": "M701", "lead_id": "L304", "lead_name": "Sarah Collins", "note": "Unanswered email, 15h waiting"}
+    ],
+    "quick_wins": [
+      {"source_type": "followup", "source_id": "F404", "lead_id": "L306", "lead_name": "Nabila Rahman", "note": "Send the UK rate card and document list"},
+      {"source_type": "message", "source_id": "M703", "lead_id": "L303", "lead_name": "Hasan Mahmud", "note": "Acknowledge Hasan and confirm the call"},
+      {"source_type": "message", "source_id": "M706", "lead_id": "L301", "lead_name": "Rezaul Karim", "note": "Confirm the 1pm filing to Rezaul"}
+    ],
+    "upcoming_preparation_items": [
+      {"source_type": "task", "source_id": "T306", "lead_id": "L301", "lead_name": "Rezaul Karim", "note": "QBR tomorrow 10:00: lead with the customs recovery"},
+      {"source_type": "message", "source_id": "M705", "lead_id": "L305", "lead_name": "Tariq Aziz", "note": "BuildMax finance meeting on Thursday"}
+    ],
+    "key_notes_insights": [
+      {"lead_id": "L301", "lead_name": "Rezaul Karim", "source_id": "N501", "insight": "6 Nov vessel is the last one for the 12 Nov buyer window", "suggested_action": "Treat the filing as the day's first task"},
+      {"lead_id": "L302", "lead_name": "Mehnaz Sultana", "source_id": "N502", "insight": "QA cares about temperature data more than price", "suggested_action": "Lead the RFQ with cold-chain evidence"},
+      {"lead_id": "L305", "lead_name": "Tariq Aziz", "source_id": "N503", "insight": "Tariq prefers us; finance only sees the 6% gap", "suggested_action": "Give him a cost-of-failure argument for finance"},
+      {"lead_id": "L303", "lead_name": "Hasan Mahmud", "source_id": "N504", "insight": "7-year customer holding our October invoice", "suggested_action": "Settle fast, even with a split"}
+    ],
+    "call_insights": [
+      {"call_id": "C601", "lead_id": "L301", "lead_name": "Rezaul Karim", "summary": "HS code mismatch is holding the container. Rezaul needs the amended invoice filed by Tuesday noon and wants Sarah updated directly.", "sentiment": "negative", "buying_signals": ["QBR booked for tomorrow"], "objections": ["customs delay", "late penalty risk"], "competitor_mentions": [], "unanswered_questions": ["Will it make the 6 Nov vessel?"], "stated_timeline": "Vessel on 6 Nov"},
+      {"call_id": "C602", "lead_id": "L302", "lead_name": "Mehnaz Sultana", "summary": "40-ton annual cold-chain RFQ to Dubai. QA values GDP certification and temperature monitoring; closes Tuesday 5pm.", "sentiment": "positive", "buying_signals": ["large annual volume", "QA session booked"], "objections": ["two global competitors"], "competitor_mentions": ["Two global forwarders"], "unanswered_questions": ["Transit time to Dubai?"], "stated_timeline": "RFQ closes Tuesday 5pm"},
+      {"call_id": "C603", "lead_id": "L303", "lead_name": "Hasan Mahmud", "summary": "Disputes BDT 1.2 lakh demurrage, blames our late documents. Accepts a breakdown by Tuesday and a waiver if we were at fault.", "sentiment": "negative", "buying_signals": ["7-year relationship"], "objections": ["demurrage charge"], "competitor_mentions": [], "unanswered_questions": ["Whose delay was it?"], "stated_timeline": "Breakdown by Tuesday"},
+      {"call_id": "C604", "lead_id": "L305", "lead_name": "Tariq Aziz", "summary": "Competitor 6% cheaper; Tariq prefers our reliability and asked for revised rates by month end for finance.", "sentiment": "neutral", "buying_signals": ["prefers our service", "never missed a slot"], "objections": ["price 6% higher"], "competitor_mentions": ["Another forwarder"], "unanswered_questions": [], "stated_timeline": "Contract ends 30 Nov"},
+      {"call_id": "C605", "lead_id": "L306", "lead_name": "Nabila Rahman", "summary": "New tea exporter wants a 2-pallet trial to London in two weeks, sea freight preferred.", "sentiment": "positive", "buying_signals": ["trial shipment in 2 weeks"], "objections": [], "competitor_mentions": [], "unanswered_questions": ["Sea transit time to London?"], "stated_timeline": "Ship in 2 weeks"}
+    ],
+    "conversation_insights": [
+      {"thread_id": "TH_401", "message_id": "M701", "lead_id": "L304", "lead_name": "Sarah Collins", "channel": "Email", "summary": "Needs a confirmed ETA and vessel today or will book air freight at our cost.", "sentiment": "negative", "awaiting_reply_from": "user", "hours_waiting": 15, "decided_facts": ["Stores launch 15 Nov"], "suggested_reply_points": ["Confirm the 6 Nov vessel", "Explain the customs fix", "Promise a status update tomorrow"]},
+      {"thread_id": "TH_402", "message_id": "M702", "lead_id": "L302", "lead_name": "Mehnaz Sultana", "channel": "Email", "summary": "Reminder that the RFQ closes at 5pm; include the GDP certificate and temperature log.", "sentiment": "neutral", "awaiting_reply_from": "user", "hours_waiting": 1, "decided_facts": ["RFQ closes 5pm today"], "suggested_reply_points": ["Confirm you'll submit on time"]},
+      {"thread_id": "TH_403", "message_id": "M703", "lead_id": "L303", "lead_name": "Hasan Mahmud", "channel": "WhatsApp", "summary": "Waiting for the breakdown; accounts are holding our invoice.", "sentiment": "negative", "awaiting_reply_from": "user", "hours_waiting": 12, "decided_facts": [], "suggested_reply_points": ["Confirm the breakdown before 14:30"]},
+      {"thread_id": "TH_404", "message_id": "M705", "lead_id": "L305", "lead_name": "Tariq Aziz", "channel": "Email", "summary": "Finance meets Thursday; without our rates only the competitor quote is presented.", "sentiment": "neutral", "awaiting_reply_from": "user", "hours_waiting": 39, "decided_facts": ["Finance meeting Thursday"], "suggested_reply_points": ["Send the volume-tier rates", "Offer a quick call before Thursday"]},
+      {"thread_id": "TH_405", "message_id": "M706", "lead_id": "L301", "lead_name": "Rezaul Karim", "channel": "SMS", "summary": "The CHA needs the amended invoice before 1pm for today's assessment.", "sentiment": "neutral", "awaiting_reply_from": "user", "hours_waiting": 1, "decided_facts": ["Filing cut-off 1pm"], "suggested_reply_points": ["Confirm it will be filed this morning"]}
+    ],
+    "workload_insights": {"meetings_count": 1, "calls_count": 3, "followups_due_today_count": 3, "emails_count": 2, "busiest_hour_range": "09:00-12:00", "free_time_slots": ["12:00-13:30", "16:00-18:00"], "overload_warning": "Heavy morning: customs, Sarah, BuildMax and the Nova session all before noon."},
+    "counts": {"at_risk_leads": 4, "overdue": 5, "quick_wins": 3, "prep_items": 2, "note_signals": 4, "open_commitments": 6, "awaiting_your_reply": 5, "total_minutes_planned": 275},
+    "schedule_conflicts": ["11:00 Nova Pharma session (60 min) overlaps the 11:30 GreenLeaf intro call"],
+    "productivity_tip": "Block 15:00-16:30 for the RFQ and turn off notifications - it's the one deadline that cannot move.",
+    "call_prep_briefs": []
+  },
+  "agent_metadata": [
+    {"agent": "call_agent[1]", "model": "gpt-4.1-mini", "input_tokens": 7410, "output_tokens": 1765, "total_tokens": 9175, "duration_ms": 18920, "items_analyzed": 5},
+    {"agent": "conversation_agent[1]", "model": "gpt-4.1-mini", "input_tokens": 3650, "output_tokens": 1240, "total_tokens": 4890, "duration_ms": 11870, "items_analyzed": 7},
+    {"agent": "task_agent", "model": "gpt-4.1-mini", "input_tokens": 5420, "output_tokens": 1390, "total_tokens": 6810, "duration_ms": 16450, "items_analyzed": 17},
+    {"agent": "synthesizer", "model": "gpt-4.1-mini", "input_tokens": 10120, "output_tokens": 2380, "total_tokens": 12500, "duration_ms": 17210, "items_analyzed": null}
+  ],
+  "errors": []
+}

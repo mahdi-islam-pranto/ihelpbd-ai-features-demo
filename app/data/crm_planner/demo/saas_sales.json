@@ -1,0 +1,91 @@
+{
+  "ai_response": {
+    "must_not_slip": [
+      {"lead_name": "Tanvir Alam", "lead_id": "L14", "source_type": "message", "source_id": "M507", "headline": "Send incident summary and service credit update", "consequence": "Risk losing customer at renewal"},
+      {"lead_name": "Rahim Uddin", "lead_id": "L2", "source_type": "task", "source_id": "T101", "headline": "Call Rahim on revised pricing", "consequence": "Decision needed by 10th to beat competitor trial"},
+      {"lead_name": "Nadia Islam", "lead_id": "L11", "source_type": "task", "source_id": "T106", "headline": "Send SOC 2 report and questionnaire", "consequence": "Delays legal review and closing"}
+    ],
+    "daily_summary": "Today focuses on urgent follow-ups with Tanvir, Rahim, and Nadia. Sending the incident summary to Tanvir must not slip. Biggest risk is Omar's fading contact amid renewal delays.",
+    "today_plan": [
+      {"source_type": "message", "source_id": "M502", "lead_id": "L2", "lead_name": "Rahim Uddin", "channel": "Email", "headline": "Confirm reporting module in revised quote", "why": "Lead needs clarity for Monday's internal review at 9am.", "steps": ["Check quote details for reporting module", "Reply with confirmation and send revised quote"], "priority_score": 90, "estimated_minutes": 10, "time_slot": "09:30-09:40", "is_fixed_time": false},
+      {"source_type": "message", "source_id": "M503", "lead_id": "L8", "lead_name": "Charlie Whitfield", "channel": "SMS", "headline": "Offer earlier pitch times for Monday meeting", "why": "Lead's travel changed, needs earlier pitch or reschedule.", "steps": ["Check calendar for today and tomorrow morning", "Propose new pitch times"], "priority_score": 85, "estimated_minutes": 5, "time_slot": "09:40-09:45", "is_fixed_time": false},
+      {"source_type": "message", "source_id": "M504", "lead_id": "L11", "lead_name": "Nadia Islam", "channel": "Email", "headline": "Confirm SOC 2 report delivery date", "why": "Legal review slot Tuesday depends on timely report delivery.", "steps": ["Verify SOC 2 report status", "Inform Nadia of confirmed delivery date"], "priority_score": 95, "estimated_minutes": 10, "time_slot": "09:45-09:55", "is_fixed_time": false},
+      {"source_type": "message", "source_id": "M507", "lead_id": "L14", "lead_name": "Tanvir Alam", "channel": "Email", "headline": "Send incident summary and service credit update", "why": "Lead threatens to consider alternatives if delayed.", "steps": ["Draft incident summary", "Provide service credit status update"], "priority_score": 100, "estimated_minutes": 15, "time_slot": "10:00-10:15", "is_fixed_time": false},
+      {"source_type": "task", "source_id": "T101", "lead_id": "L2", "lead_name": "Rahim Uddin", "channel": "Call", "headline": "Call Rahim on revised pricing", "why": "Budget approved but Vendor X trial ongoing, decision needed by 10th", "steps": ["Focus on per-seat price concerns"], "priority_score": 95, "estimated_minutes": 20, "time_slot": "10:00", "is_fixed_time": true},
+      {"source_type": "task", "source_id": "T102", "lead_id": "L25", "lead_name": "Farhan Chowdhury", "channel": "Meeting", "headline": "Attend technical deep-dive with Delta IT", "why": "IT lead is the blocker; must address API and SSO concerns", "steps": ["Prepare API rate limits data", "Confirm SSO via Okta details"], "priority_score": 90, "estimated_minutes": 60, "time_slot": "10:30", "is_fixed_time": true},
+      {"source_type": "task", "source_id": "T103", "lead_id": "L1", "lead_name": "John Mathews", "channel": "Call", "headline": "Call with John Mathews", "why": "Discuss proposal feedback and next steps", "steps": [], "priority_score": 70, "estimated_minutes": 20, "time_slot": "10:45", "is_fixed_time": true},
+      {"source_type": "message", "source_id": "M508", "lead_id": "L25", "lead_name": "Farhan Chowdhury", "channel": "Email", "headline": "Send architecture doc and clarify data residency", "why": "Lead needs doc before tomorrow or session reschedules.", "steps": ["Send architecture document today", "Explain data residency options"], "priority_score": 90, "estimated_minutes": 10, "time_slot": "11:30-11:40", "is_fixed_time": false},
+      {"source_type": "task", "source_id": "T105", "lead_id": "L14", "lead_name": "Tanvir Alam", "channel": "Call", "headline": "Call with Tanvir Alam", "why": "Apology call re: the failed data import, confirm the fix landed", "steps": [], "priority_score": 85, "estimated_minutes": 20, "time_slot": "16:00", "is_fixed_time": true}
+    ],
+    "lead_risk_alerts": [
+      {"lead_name": "Tanvir Alam", "lead_id": "L14", "issue": "Threatened to leave if sync failure recurs; urgent incident summary needed", "severity": "high", "suggested_recovery_step": "Send incident summary and call today", "evidence": [
+        {"source_type": "call", "source_id": "C404", "lead_id": "L14", "lead_name": "Tanvir Alam", "note": "Call with complaint about sync failure"},
+        {"source_type": "message", "source_id": "M507", "lead_id": "L14", "lead_name": "Tanvir Alam", "note": "Email demanding incident summary and service credit"}]},
+      {"lead_name": "Omar Siddique", "lead_id": "L5", "issue": "Renewal pending, snoozed twice, contact fading", "severity": "high", "suggested_recovery_step": "Prompt Omar on renewal status and offer call", "evidence": [
+        {"source_type": "followup", "source_id": "F202", "lead_id": "L5", "lead_name": "Omar Siddique", "note": "Renewal decision pending, snoozed twice"},
+        {"source_type": "note", "source_id": "N306", "lead_id": "L5", "lead_name": "Omar Siddique", "note": "Omar may lose ownership, team reorganizing"}]},
+      {"lead_name": "Kamal Hossain", "lead_id": "L21", "issue": "No scheduled touchpoint since August, warm Q2 lead", "severity": "medium", "suggested_recovery_step": "Schedule catch-up call this week", "evidence": [
+        {"source_type": "note", "source_id": "N303", "lead_id": "L21", "lead_name": "Kamal Hossain", "note": "Check back after new fiscal year starts"}]},
+      {"lead_name": "Imran Kabir", "lead_id": "L30", "issue": "Long gap, overdue call and followup", "severity": "medium", "suggested_recovery_step": "Call back and qualify budget today", "evidence": [
+        {"source_type": "task", "source_id": "T109", "lead_id": "L30", "lead_name": "Imran Kabir", "note": "Intro call to qualify budget and timeline"},
+        {"source_type": "followup", "source_id": "F206", "lead_id": "L30", "lead_name": "Imran Kabir", "note": "Call back after Eid holidays"}]}
+    ],
+    "open_commitments": [
+      {"call_id": "C401", "lead_id": "L2", "lead_name": "Rahim Uddin", "promised_by": "user", "commitment": "Send revised quote with annual discount and tiered seat bands", "due_hint": "Saturday (2026-09-05, 1 day(s) ago)", "status": "overdue", "covered_by": null, "suggested_action": "Send revised quote immediately, include reporting module details"},
+      {"call_id": "C401", "lead_id": "L2", "lead_name": "Rahim Uddin", "promised_by": "user", "commitment": "Loop in solutions engineer for ops lead questions", "due_hint": "Saturday (2026-09-05, 1 day(s) ago)", "status": "overdue", "covered_by": null, "suggested_action": "Email solutions engineer to Rahim and ops lead today"},
+      {"call_id": "C404", "lead_id": "L14", "lead_name": "Tanvir Alam", "promised_by": "user", "commitment": "Take service credit question to manager", "due_hint": "Today (2026-09-05, 1 day(s) ago)", "status": "overdue", "covered_by": {"source_type": "task", "source_id": "T105", "lead_id": "L14", "lead_name": "Tanvir Alam", "note": "Call to confirm fix and service credit"}, "suggested_action": "Discuss service credit with manager and call Tanvir today"},
+      {"call_id": "C405", "lead_id": "L25", "lead_name": "Farhan Chowdhury", "promised_by": "user", "commitment": "Check data residency regions and report back", "due_hint": null, "status": "unknown", "covered_by": null, "suggested_action": "Confirm data residency options with Farhan"},
+      {"call_id": "C407", "lead_id": "L17", "lead_name": "Sophia Rahman", "promised_by": "user", "commitment": "Countersign NDA and send back", "due_hint": "Tomorrow", "status": "pending", "covered_by": {"source_type": "task", "source_id": "T104", "lead_id": "L17", "lead_name": "Sophia Rahman", "note": "Send countersigned NDA email"}, "suggested_action": "Send countersigned NDA email today"}
+    ],
+    "overdue_items": [
+      {"source_type": "followup", "source_id": "F202", "lead_id": "L5", "lead_name": "Omar Siddique", "note": "Renewal decision pending, snoozed twice"},
+      {"source_type": "followup", "source_id": "F206", "lead_id": "L30", "lead_name": "Imran Kabir", "note": "Call back after Eid holidays"},
+      {"source_type": "message", "source_id": "M511", "lead_id": "L30", "lead_name": "Imran Kabir", "note": "Unanswered WhatsApp, 117h waiting"},
+      {"source_type": "task", "source_id": "T106", "lead_id": "L11", "lead_name": "Nadia Islam", "note": "Send SOC 2 report and security responses"},
+      {"source_type": "followup", "source_id": "F203", "lead_id": "L14", "lead_name": "Tanvir Alam", "note": "Confirm data import fix and offer service credit"},
+      {"source_type": "task", "source_id": "T109", "lead_id": "L30", "lead_name": "Imran Kabir", "note": "Intro call to qualify budget and timeline"}
+    ],
+    "quick_wins": [
+      {"source_type": "task", "source_id": "T104", "lead_id": "L17", "lead_name": "Sophia Rahman", "note": "Send NDA countersignature email"},
+      {"source_type": "followup", "source_id": "F204", "lead_id": "L17", "lead_name": "Sophia Rahman", "note": "Confirm onboarding date choice"},
+      {"source_type": "followup", "source_id": "F201", "lead_id": "L2", "lead_name": "Rahim Uddin", "note": "Follow up after demo review"}
+    ],
+    "upcoming_preparation_items": [
+      {"source_type": "task", "source_id": "T107", "lead_id": "L8", "lead_name": "Charlie Whitfield", "note": "Prepare for final pitch on Monday"},
+      {"source_type": "followup", "source_id": "F205", "lead_id": "L11", "lead_name": "Nadia Islam", "note": "Check legal clearance of DPA before Monday"}
+    ],
+    "key_notes_insights": [
+      {"lead_id": "L2", "lead_name": "Rahim Uddin", "source_id": "N301", "insight": "Budget approved ~45k, Vendor X trial next week", "suggested_action": "Emphasize price in call"},
+      {"lead_id": "L14", "lead_name": "Tanvir Alam", "source_id": "N304", "insight": "Very unhappy; threatened to leave if issues recur", "suggested_action": "Prioritize apology call"},
+      {"lead_id": "L8", "lead_name": "Charlie Whitfield", "source_id": "N302", "insight": "Decision maker travels from 8th; Monday pitch critical", "suggested_action": "Prepare pitch focused on payback period"},
+      {"lead_id": "L25", "lead_name": "Farhan Chowdhury", "source_id": "N305", "insight": "IT lead is blocker; worries on API and SSO", "suggested_action": "Address IT concerns in meeting"}
+    ],
+    "call_insights": [
+      {"call_id": "C401", "lead_id": "L2", "lead_name": "Rahim Uddin", "summary": "Rahim liked the product but price per seat is nearly double budget; trial with competitor starts Monday. Wants revised quote with discounts by Saturday.", "sentiment": "neutral", "buying_signals": ["team liked reporting", "wants decision before 10th"], "objections": ["price too high", "competitor trial starting"], "competitor_mentions": ["Vendor X"], "unanswered_questions": ["Is reporting module included or add-on?"], "stated_timeline": "Internal review Monday 9am"},
+      {"call_id": "C404", "lead_id": "L14", "lead_name": "Tanvir Alam", "summary": "Tanvir upset about silent failure in inventory sync; wants incident summary and service credit info by end of week; renewal in six weeks.", "sentiment": "negative", "buying_signals": ["wants service credit", "renewal in six weeks"], "objections": ["silent failure", "monitoring gap"], "competitor_mentions": [], "unanswered_questions": ["Will proactive alerts be provided going forward?"], "stated_timeline": "Renewal in six weeks"},
+      {"call_id": "C405", "lead_id": "L25", "lead_name": "Farhan Chowdhury", "summary": "Farhan aligned commercially but IT lead concerned about rate limits and SSO; wants architecture doc before Sunday session; data residency check pending.", "sentiment": "neutral", "buying_signals": ["commercial alignment", "procurement formality"], "objections": ["rate limits concern", "SSO requirement"], "competitor_mentions": [], "unanswered_questions": ["Which data residency regions are available?"], "stated_timeline": "Want to be live before Q4"},
+      {"call_id": "C406", "lead_id": "L11", "lead_name": "Nadia Islam", "summary": "Nadia expects SOC 2 report and questionnaire by Thursday; legal review takes three days; wants to close this month; no other stakeholders.", "sentiment": "neutral", "buying_signals": ["budget allocated", "chose us in July"], "objections": [], "competitor_mentions": [], "unanswered_questions": [], "stated_timeline": "Close this month"},
+      {"call_id": "C407", "lead_id": "L17", "lead_name": "Sophia Rahman", "summary": "Sophia sent NDA, needs countersignature returned tomorrow; deciding onboarding date between 15th and 22nd, will confirm tomorrow.", "sentiment": "neutral", "buying_signals": ["signed NDA sent"], "objections": [], "competitor_mentions": [], "unanswered_questions": [], "stated_timeline": null}
+    ],
+    "conversation_insights": [
+      {"thread_id": "TH_77", "message_id": "M502", "lead_id": "L2", "lead_name": "Rahim Uddin", "channel": "Email", "summary": "Sent revised quote promise for Saturday; lead asks if reporting module included, internal review Monday 9am.", "sentiment": "neutral", "awaiting_reply_from": "user", "hours_waiting": 32, "decided_facts": ["Internal review Monday 9am"], "suggested_reply_points": ["Confirm reporting module inclusion in quote", "Send revised quote promptly"]},
+      {"thread_id": "TH_81", "message_id": "M503", "lead_id": "L8", "lead_name": "Charlie Whitfield", "channel": "SMS", "summary": "Lead requests to move Monday's pitch earlier due to travel changes, urgent scheduling needed.", "sentiment": "neutral", "awaiting_reply_from": "user", "hours_waiting": 23, "decided_facts": [], "suggested_reply_points": ["Check availability for today or tomorrow morning", "Confirm new pitch time"]},
+      {"thread_id": "TH_84", "message_id": "M504", "lead_id": "L11", "lead_name": "Nadia Islam", "channel": "Email", "summary": "Lead asks about SOC 2 report delivery, legal review slot Tuesday, urgent confirmation needed.", "sentiment": "neutral", "awaiting_reply_from": "user", "hours_waiting": 30, "decided_facts": [], "suggested_reply_points": ["Confirm SOC 2 report delivery date", "Ensure legal review slot not missed"]},
+      {"thread_id": "TH_88", "message_id": "M506", "lead_id": "L5", "lead_name": "Omar Siddique", "channel": "Email", "summary": "Follow-up on renewal paperwork, no response yet, offer to call to expedite.", "sentiment": "neutral", "awaiting_reply_from": "lead", "hours_waiting": 80, "decided_facts": [], "suggested_reply_points": ["Prompt Omar on renewal status", "Offer quick call to resolve issues"]},
+      {"thread_id": "TH_91", "message_id": "M507", "lead_id": "L14", "lead_name": "Tanvir Alam", "channel": "Email", "summary": "Lead requests incident summary and service credit answer urgently to avoid switching vendors.", "sentiment": "negative", "awaiting_reply_from": "user", "hours_waiting": 26, "decided_facts": [], "suggested_reply_points": ["Prepare incident summary", "Provide service credit update"]},
+      {"thread_id": "TH_94", "message_id": "M508", "lead_id": "L25", "lead_name": "Farhan Chowdhury", "channel": "Email", "summary": "Lead reminds architecture doc needed before tomorrow and asks about data residency options.", "sentiment": "neutral", "awaiting_reply_from": "user", "hours_waiting": 25, "decided_facts": [], "suggested_reply_points": ["Send architecture doc today", "Clarify data residency options"]}
+    ],
+    "workload_insights": {"meetings_count": 1, "calls_count": 3, "followups_due_today_count": 2, "emails_count": 1, "busiest_hour_range": "10:00-11:30", "free_time_slots": ["11:30-14:00", "14:05-16:00", "16:20-18:00"], "overload_warning": null},
+    "counts": {"at_risk_leads": 4, "overdue": 6, "quick_wins": 3, "prep_items": 2, "note_signals": 4, "open_commitments": 5, "awaiting_your_reply": 5, "total_minutes_planned": 170},
+    "schedule_conflicts": ["10:30 meeting overlaps 10:45 call with John Mathews"],
+    "productivity_tip": "Tackle urgent emails and calls before fixed meetings to avoid last-minute rush.",
+    "call_prep_briefs": []
+  },
+  "agent_metadata": [
+    {"agent": "call_agent[1]", "model": "gpt-4.1-mini", "input_tokens": 8580, "output_tokens": 1998, "total_tokens": 10578, "duration_ms": 22203, "items_analyzed": 6},
+    {"agent": "conversation_agent[1]", "model": "gpt-4.1-mini", "input_tokens": 4710, "output_tokens": 1493, "total_tokens": 6203, "duration_ms": 14153, "items_analyzed": 11},
+    {"agent": "task_agent", "model": "gpt-4.1-mini", "input_tokens": 6207, "output_tokens": 1514, "total_tokens": 7721, "duration_ms": 19196, "items_analyzed": 23},
+    {"agent": "synthesizer", "model": "gpt-4.1-mini", "input_tokens": 11556, "output_tokens": 2321, "total_tokens": 13877, "duration_ms": 17939, "items_analyzed": null}
+  ],
+  "errors": []
+}

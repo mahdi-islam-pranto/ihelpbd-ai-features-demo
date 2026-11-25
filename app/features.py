@@ -35,19 +35,34 @@ class Feature:
     input_template: str = "inputs/panel.html"
     scripts: list[str] = field(default_factory=list)   # extra page JS (loaded before feature.js)
     styles: list[str] = field(default_factory=list)    # extra page CSS
+    portal_url: str | None = None   # hosted elsewhere for now: page embeds this portal
 
     @property
     def api(self) -> dict:
         return api_settings(self.env_prefix)
 
     @property
+    def is_portal(self) -> bool:
+        return bool(self.portal_url)
+
+    @property
     def is_live(self) -> bool:
         from app.config import force_demo_mode
-        return bool(self.api["url"]) and not force_demo_mode()
+        return not self.is_portal and bool(self.api["url"]) and not force_demo_mode()
 
     @property
     def mode(self) -> str:
+        if self.is_portal:
+            return "portal"
         return "live" if self.is_live else "demo"
+
+    @property
+    def status_label(self) -> str:
+        return {"portal": "Demo portal", "live": "Live API", "demo": "Demo data"}[self.mode]
+
+    @property
+    def href(self) -> str:
+        return f"/features/{self.slug}"
 
     def public_dict(self) -> dict:
         """Safe representation for the frontend (never exposes API keys/URLs)."""
@@ -57,6 +72,7 @@ class Feature:
             "category": self.category,
             "tagline": self.tagline,
             "mode": self.mode,
+            "url": self.href,
         }
 
 
@@ -120,8 +136,8 @@ FEATURES: list[Feature] = [
     ),
     Feature(
         slug="agent-quality-check",
-        name="Call Center Agent Quality Check",
-        short_name="Agent QA",
+        name="Agent Call Quality Check (QC)",
+        short_name="Agent QC",
         category="Voice & Call Intelligence",
         icon="shield",
         tagline="Score every agent call against your quality and compliance standards.",
@@ -131,8 +147,10 @@ FEATURES: list[Feature] = [
         ),
         env_prefix="AGENT_QA",
         file_kind="recordings",
-        file_required=True,
-        run_label="Check quality",
+        # Runs on its own demo portal for now (embedded on the feature page). Remove
+        # portal_url once the API and frontend are integrated here (mock data +
+        # renderer already exist).
+        portal_url="http://138.252.115.100:6042/",
         highlights=[
             "Weighted quality scorecard",
             "Compliance and script adherence checks",
@@ -144,7 +162,6 @@ FEATURES: list[Feature] = [
             {"title": "Team leads", "text": "Coach agents with objective, evidence-based feedback."},
             {"title": "Compliance", "text": "Find missing disclosures automatically."},
         ],
-        processing_steps=["Uploading recording", "Transcribing", "Scoring against criteria", "Preparing feedback"],
     ),
     Feature(
         slug="call-transcription",
@@ -228,6 +245,79 @@ FEATURES: list[Feature] = [
             {"title": "Managers", "text": "See how many real opportunities a campaign produced."},
         ],
         processing_steps=["Uploading calls", "Listening", "Matching lead criteria", "Ranking leads"],
+    ),
+    Feature(
+        slug="crm-ai-planner",
+        name="CRM AI Planner",
+        short_name="AI Planner",
+        category="Sales Intelligence",
+        icon="calendar",
+        tagline="Turns every task, follow-up, note, call and message in the CRM into today's plan.",
+        description=(
+            "A team of AI agents reads the user's whole CRM: tasks, follow-ups, notes, call "
+            "transcripts and emails/messages. It builds a time-blocked plan for the day, flags what "
+            "must not slip, spots leads going cold, tracks promises made on calls and drafts the "
+            "points for every reply that's waiting."
+        ),
+        env_prefix="CRM_PLANNER",
+        file_kind="crm",
+        run_label="Plan my day",
+        docs_file="crm_planner.md",
+        theme="planner",
+        history_hint="Search user, industry, summary…",
+        input_template="inputs/crm_planner.html",
+        scripts=["js/planner_view.js", "js/planner_input.js"],
+        styles=["css/planner.css"],
+        highlights=[
+            "Time-blocked plan for the working day, conflicts flagged",
+            "\"Must not slip\" items with the cost of missing them",
+            "Leads at risk with evidence from calls, notes and messages",
+            "Promises made on calls, and whether a task covers them",
+            "Replies waiting on you, with suggested talking points",
+        ],
+        steps=[
+            "Pick a demo CRM (4 industries) or load your own CRM JSON",
+            "Call, conversation and task agents read every record",
+            "A planner agent merges them into one plan for today",
+        ],
+        use_cases=[
+            {"title": "Sales reps", "text": "Start the day knowing exactly what to do first and what can wait."},
+            {"title": "Account managers", "text": "Never miss a promise made on a call or an unhappy customer."},
+            {"title": "Team leads", "text": "See which deals are at risk before they're lost."},
+        ],
+        processing_steps=["Reading CRM records", "Analyzing calls", "Reading conversations",
+                          "Checking tasks & follow-ups", "Building today's plan"],
+    ),
+    Feature(
+        slug="customer-support-chatbot",
+        name="Customer Support Chatbot",
+        short_name="Support Chatbot",
+        category="Customer Experience",
+        icon="chat",
+        tagline="An AI assistant that answers customer questions around the clock.",
+        description=(
+            "A chat assistant for your website or app that answers customer questions "
+            "instantly, any time of day, so your support team can focus on the cases "
+            "that need a person."
+        ),
+        env_prefix="SUPPORT_CHATBOT",
+        # Runs on its own demo portal for now (embedded on the feature page).
+        portal_url="http://138.252.115.100:6040/",
+        highlights=[
+            "Instant answers to customer questions",
+            "Available 24/7",
+            "Natural, conversational replies",
+        ],
+        steps=[
+            "Type a question in the chat window",
+            "The AI assistant understands what the customer needs",
+            "It replies in seconds",
+        ],
+        use_cases=[
+            {"title": "Customer support", "text": "Answer common questions without waiting for an agent."},
+            {"title": "Websites & apps", "text": "Help visitors find what they need, any time."},
+            {"title": "Support teams", "text": "Reduce repetitive tickets and calls."},
+        ],
     ),
 ]
 

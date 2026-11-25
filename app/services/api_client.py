@@ -10,7 +10,7 @@ from dataclasses import dataclass
 
 import httpx
 
-from app.config import API_TIMEOUT
+from app.config import API_TIMEOUT, get_setting
 from app.features import Feature
 from app.services import mock_data
 
@@ -107,6 +107,25 @@ async def _find_leads(feature: Feature, inp: RunInput) -> dict:
     return await _post(feature, {}, parts)
 
 
+async def _crm_planner(feature: Feature, inp: RunInput) -> dict:
+    """POST /crm/ai-dashboard with the CRM data as JSON (see api_docs/crm_planner.md).
+    Auth: `token` and `ssh-key` headers from CRM_PLANNER_API_TOKEN / CRM_PLANNER_API_SSH_KEY."""
+    headers = {name: value for name, env in (("token", "CRM_PLANNER_API_TOKEN"),
+                                             ("ssh-key", "CRM_PLANNER_API_SSH_KEY"))
+               if (value := get_setting(env).strip())}
+    async with httpx.AsyncClient(timeout=API_TIMEOUT) as client:
+        resp = await client.post(feature.api["url"], json=inp.params["crm"], headers=headers)
+    if resp.status_code >= 400:
+        raise _upstream_error(feature, resp)
+    try:
+        data = resp.json()
+    except ValueError:
+        raise UpstreamError(f"{feature.name} API returned a non-JSON response")
+    if not isinstance(data, dict) or not isinstance(data.get("ai_response"), dict):
+        raise UpstreamError(f"{feature.name} API returned an unexpected response")
+    return data
+
+
 async def _generic(feature: Feature, inp: RunInput) -> dict:
     """Fallback for features whose contract isn't wired up yet."""
     files = None
@@ -120,6 +139,7 @@ ADAPTERS = {
     "call-recording-analysis": _call_analysis,
     "call-transcription": _transcribe,
     "lead-finder": _find_leads,
+    "crm-ai-planner": _crm_planner,
 }
 
 

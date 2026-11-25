@@ -1,0 +1,91 @@
+{
+  "ai_response": {
+    "must_not_slip": [
+      {"lead_name": "Priyanka Das", "lead_id": "L404", "source_type": "message", "source_id": "M801", "headline": "Send Priyanka line-by-line SOP feedback this morning", "consequence": "50% scholarship portal closes tomorrow midnight"},
+      {"lead_name": "Rokeya Begum", "lead_id": "L402", "source_type": "task", "source_id": "T402", "headline": "Walk into the 12:00 meeting with the real cause of the delay", "consequence": "Refund demand and the family switches agency"},
+      {"lead_name": "Tanjim Ahmed", "lead_id": "L401", "source_type": "followup", "source_id": "F501", "headline": "Tell Tanjim the bank statement fails the 28-day rule", "consequence": "Visa refused on 10 Dec, January intake lost"}
+    ],
+    "daily_summary": "Priyanka's SOP feedback is two days late and her portal closes tomorrow - do it first. For the 12:00 meeting you now know Raisa's offer is held for a missing attested transcript. Tanjim's funds only cover 22 days by 10 Dec, so his visa date needs to move.",
+    "today_plan": [
+      {"source_type": "message", "source_id": "M801", "lead_id": "L404", "lead_name": "Priyanka Das", "channel": "Email", "headline": "Send Priyanka's SOP feedback", "why": "Promised for Monday; she needs a full day to rewrite before tomorrow's deadline.", "steps": ["Restructure around her research assistant work", "Line-by-line comments", "Offer a 15-min call this evening"], "priority_score": 100, "estimated_minutes": 25, "time_slot": "10:00-10:25", "is_fixed_time": false},
+      {"source_type": "task", "source_id": "T401", "lead_id": "L401", "lead_name": "Tanjim Ahmed", "channel": "Call", "headline": "Visa checklist call: the 28-day problem", "why": "Funds have been held since 18 Nov - only 22 days by the appointment.", "steps": ["Explain the 28-day rule", "Propose moving the visa date to 16 Dec or later", "Re-check the rest of the checklist"], "priority_score": 95, "estimated_minutes": 20, "time_slot": "10:30", "is_fixed_time": true},
+      {"source_type": "followup", "source_id": "F504", "lead_id": "L402", "lead_name": "Rokeya Begum", "channel": "Email", "headline": "Get Raisa's attested transcript to Northbridge", "why": "The university put the application on hold for this document.", "steps": ["Ask Raisa to bring the attested HSC transcript to the 12:00 meeting", "Upload it to the agent portal today"], "priority_score": 90, "estimated_minutes": 15, "time_slot": "11:00-11:15", "is_fixed_time": false},
+      {"source_type": "followup", "source_id": "F503", "lead_id": "L406", "lead_name": "Mehedi Hasan", "channel": "SMS", "headline": "Confirm Mehedi's seminar seat (+1)", "why": "One-line reply, waiting a day.", "steps": ["Reply yes, his wife is welcome"], "priority_score": 40, "estimated_minutes": 5, "time_slot": "11:15-11:20", "is_fixed_time": false},
+      {"source_type": "task", "source_id": "T402", "lead_id": "L402", "lead_name": "Rokeya Begum", "channel": "Meeting", "headline": "Meeting with Mrs. Rokeya and Raisa", "why": "They will ask for a refund without a real update.", "steps": ["Explain the missing transcript honestly", "Show the 5-working-day decision timeline", "Upload the transcript together during the meeting"], "priority_score": 95, "estimated_minutes": 45, "time_slot": "12:00", "is_fixed_time": true},
+      {"source_type": "task", "source_id": "T407", "lead_id": "L407", "lead_name": "James Porter", "channel": "Call", "headline": "Partner call with Northbridge University", "why": "Clashes with the 12:00 meeting - move to 13:00 and ask to fast-track Raisa.", "steps": ["Reschedule to 13:00", "Ask for a fast-track decision for Raisa"], "priority_score": 70, "estimated_minutes": 20, "time_slot": "12:30", "is_fixed_time": true},
+      {"source_type": "task", "source_id": "T403", "lead_id": "L404", "lead_name": "Priyanka Das", "channel": "Email", "headline": "Review Priyanka's rewritten SOP", "why": "Second pass to make sure it lands before the portal closes.", "steps": ["Check the opening paragraph", "Confirm the lab and supervisor names"], "priority_score": 80, "estimated_minutes": 20, "time_slot": "15:00", "is_fixed_time": true},
+      {"source_type": "task", "source_id": "T404", "lead_id": "L403", "lead_name": "Nafis Iqbal", "channel": "Call", "headline": "College recommendation call with Nafis", "why": "Deposit deadline Friday; his father wants to transfer this week.", "steps": ["Compare the two Toronto colleges on fees and co-op", "Give total first-year cost", "Agree on one college"], "priority_score": 85, "estimated_minutes": 25, "time_slot": "16:00", "is_fixed_time": true}
+    ],
+    "lead_risk_alerts": [
+      {"lead_name": "Rokeya Begum", "lead_id": "L402", "issue": "Parent threatening a refund and switching agency after a 6-week delay", "severity": "high", "suggested_recovery_step": "Explain the missing transcript and submit it with them at 12:00", "evidence": [
+        {"source_type": "call", "source_id": "C702", "lead_id": "L402", "lead_name": "Rokeya Begum", "note": "Wants facts, not promises"},
+        {"source_type": "message", "source_id": "M802", "lead_id": "L402", "lead_name": "Rokeya Begum", "note": "Refund if no real update"},
+        {"source_type": "call", "source_id": "C705", "lead_id": "L407", "lead_name": "James Porter", "note": "Application on hold: attested transcript missing"}]},
+      {"lead_name": "Tanjim Ahmed", "lead_id": "L401", "issue": "Bank statement short of the 28-day rule for the 10 Dec visa appointment", "severity": "high", "suggested_recovery_step": "Move the appointment to 16 Dec or later", "evidence": [
+        {"source_type": "message", "source_id": "M803", "lead_id": "L401", "lead_name": "Tanjim Ahmed", "note": "Funds held since 18 November"},
+        {"source_type": "note", "source_id": "N601", "lead_id": "L401", "lead_name": "Tanjim Ahmed", "note": "Statement only 12 days old"}]},
+      {"lead_name": "Priyanka Das", "lead_id": "L404", "issue": "Promised feedback is late and the scholarship closes tomorrow", "severity": "high", "suggested_recovery_step": "Send feedback before 10:30 and offer an evening review", "evidence": [
+        {"source_type": "call", "source_id": "C703", "lead_id": "L404", "lead_name": "Priyanka Das", "note": "Feedback promised by Monday"},
+        {"source_type": "message", "source_id": "M801", "lead_id": "L404", "lead_name": "Priyanka Das", "note": "Still waiting, portal closes tomorrow"}]},
+      {"lead_name": "Abrar Hossain", "lead_id": "L405", "issue": "Keen fair lead gone cold for 21 days", "severity": "low", "suggested_recovery_step": "Send the Germany program list and book a session", "evidence": [
+        {"source_type": "task", "source_id": "T405", "lead_id": "L405", "lead_name": "Abrar Hossain", "note": "Program list email overdue"},
+        {"source_type": "followup", "source_id": "F502", "lead_id": "L405", "lead_name": "Abrar Hossain", "note": "Call-back snoozed"}]}
+    ],
+    "open_commitments": [
+      {"call_id": "C703", "lead_id": "L404", "lead_name": "Priyanka Das", "promised_by": "user", "commitment": "Send detailed line-by-line SOP feedback by Monday", "due_hint": "Monday (2026-11-30, 1 day(s) ago)", "status": "overdue", "covered_by": {"source_type": "task", "source_id": "T403", "lead_id": "L404", "lead_name": "Priyanka Das", "note": "SOP feedback task at 15:00"}, "suggested_action": "Send it this morning, not at 15:00"},
+      {"call_id": "C701", "lead_id": "L401", "lead_name": "Tanjim Ahmed", "promised_by": "user", "commitment": "Check the statement dates and reply the next day", "due_hint": "Yesterday (2026-11-30)", "status": "overdue", "covered_by": {"source_type": "task", "source_id": "T401", "lead_id": "L401", "lead_name": "Tanjim Ahmed", "note": "Visa checklist call 10:30"}, "suggested_action": "Give him the answer on the 10:30 call"},
+      {"call_id": "C701", "lead_id": "L401", "lead_name": "Tanjim Ahmed", "promised_by": "user", "commitment": "Check options to move the visa appointment", "due_hint": null, "status": "unknown", "covered_by": null, "suggested_action": "Have available dates ready for the call"},
+      {"call_id": "C702", "lead_id": "L402", "lead_name": "Rokeya Begum", "promised_by": "user", "commitment": "Have a full update from the university by the meeting", "due_hint": "Today 12:00", "status": "pending", "covered_by": {"source_type": "task", "source_id": "T402", "lead_id": "L402", "lead_name": "Rokeya Begum", "note": "Meeting at 12:00"}, "suggested_action": "Use James Porter's hold email as the update"},
+      {"call_id": "C705", "lead_id": "L407", "lead_name": "James Porter", "promised_by": "user", "commitment": "Get Raisa's attested transcript to the university this week", "due_hint": "This week", "status": "pending", "covered_by": {"source_type": "followup", "source_id": "F504", "lead_id": "L402", "lead_name": "Rokeya Begum", "note": "Chase university for offer"}, "suggested_action": "Upload it during the 12:00 meeting"},
+      {"call_id": "C704", "lead_id": "L403", "lead_name": "Nafis Iqbal", "promised_by": "user", "commitment": "Call at 4 with a college recommendation and total first-year cost", "due_hint": "Today 16:00", "status": "pending", "covered_by": {"source_type": "task", "source_id": "T404", "lead_id": "L403", "lead_name": "Nafis Iqbal", "note": "College shortlist call"}, "suggested_action": "Prepare the cost comparison at lunch"}
+    ],
+    "overdue_items": [
+      {"source_type": "followup", "source_id": "F502", "lead_id": "L405", "lead_name": "Abrar Hossain", "note": "Call-back 11 days overdue (snoozed)"},
+      {"source_type": "task", "source_id": "T405", "lead_id": "L405", "lead_name": "Abrar Hossain", "note": "Germany program list 3 days late"},
+      {"source_type": "followup", "source_id": "F504", "lead_id": "L402", "lead_name": "Rokeya Begum", "note": "University chase 2 days overdue"},
+      {"source_type": "followup", "source_id": "F501", "lead_id": "L401", "lead_name": "Tanjim Ahmed", "note": "Bank statement check 1 day overdue"},
+      {"source_type": "message", "source_id": "M803", "lead_id": "L401", "lead_name": "Tanjim Ahmed", "note": "Unanswered email, 25h waiting"}
+    ],
+    "quick_wins": [
+      {"source_type": "followup", "source_id": "F503", "lead_id": "L406", "lead_name": "Mehedi Hasan", "note": "Confirm the seminar seat for him and his wife"},
+      {"source_type": "message", "source_id": "M805", "lead_id": "L403", "lead_name": "Nafis Iqbal", "note": "Tell Nafis the recommendation comes at 16:00"},
+      {"source_type": "task", "source_id": "T405", "lead_id": "L405", "lead_name": "Abrar Hossain", "note": "Email Abrar the Germany program list"}
+    ],
+    "upcoming_preparation_items": [
+      {"source_type": "task", "source_id": "T406", "lead_id": "L406", "lead_name": "Mehedi Hasan", "note": "Parents' seminar on Thursday: finalise slides and seating"},
+      {"source_type": "followup", "source_id": "F505", "lead_id": "L403", "lead_name": "Nafis Iqbal", "note": "Deposit payment guide due tomorrow"}
+    ],
+    "key_notes_insights": [
+      {"lead_id": "L401", "lead_name": "Tanjim Ahmed", "source_id": "N601", "insight": "Funds held 22 days by the appointment; 28 needed", "suggested_action": "Move the visa date, don't risk a refusal"},
+      {"lead_id": "L402", "lead_name": "Rokeya Begum", "source_id": "N602", "insight": "Paid fee, 6 weeks late, friend got an offer elsewhere", "suggested_action": "Lead with facts and a clear timeline"},
+      {"lead_id": "L404", "lead_name": "Priyanka Das", "source_id": "N603", "insight": "Strong profile let down by a generic SOP", "suggested_action": "Rebuild the SOP around her research story"},
+      {"lead_id": "L403", "lead_name": "Nafis Iqbal", "source_id": "N604", "insight": "SDS-eligible, budget ~20 lakh, prefers Toronto", "suggested_action": "Recommend the college that fits the budget with co-op"}
+    ],
+    "call_insights": [
+      {"call_id": "C701", "lead_id": "L401", "lead_name": "Tanjim Ahmed", "summary": "CAS confirmed; the father moved the funds only ten days ago, so the 28-day rule may fail for the 10 Dec appointment.", "sentiment": "positive", "buying_signals": ["CAS confirmed"], "objections": ["funds held under 28 days"], "competitor_mentions": [], "unanswered_questions": ["Can the visa appointment move?"], "stated_timeline": "Visa appointment 10 Dec"},
+      {"call_id": "C702", "lead_id": "L402", "lead_name": "Rokeya Begum", "summary": "Angry about a 6-week delay; a friend got an offer via another agency. Wants a refund without a clear answer by the meeting.", "sentiment": "negative", "buying_signals": [], "objections": ["slow service", "fee already paid"], "competitor_mentions": ["Another agency"], "unanswered_questions": ["Why is the offer delayed?"], "stated_timeline": "Answer by 1 Dec"},
+      {"call_id": "C703", "lead_id": "L404", "lead_name": "Priyanka Das", "summary": "Excellent profile; the SOP needs a research narrative. Feedback promised by Monday, portal closes 2 Dec midnight.", "sentiment": "positive", "buying_signals": ["highly motivated"], "objections": [], "competitor_mentions": [], "unanswered_questions": [], "stated_timeline": "Portal closes 2 Dec"},
+      {"call_id": "C704", "lead_id": "L403", "lead_name": "Nafis Iqbal", "summary": "IELTS meets SDS. Needs a college choice and total first-year cost before the Friday deposit deadline.", "sentiment": "positive", "buying_signals": ["ready to pay deposit"], "objections": ["budget limit"], "competitor_mentions": [], "unanswered_questions": ["Which college?", "Total first-year cost?"], "stated_timeline": "Deposit by Friday"},
+      {"call_id": "C705", "lead_id": "L407", "lead_name": "James Porter", "summary": "Raisa's application is on hold for a missing attested HSC transcript; decision within 5 working days once received.", "sentiment": "neutral", "buying_signals": [], "objections": ["missing document"], "competitor_mentions": [], "unanswered_questions": [], "stated_timeline": "5 working days after upload"}
+    ],
+    "conversation_insights": [
+      {"thread_id": "TH_501", "message_id": "M801", "lead_id": "L404", "lead_name": "Priyanka Das", "channel": "Email", "summary": "Still waiting for SOP feedback; needs it today to rewrite before tomorrow's deadline.", "sentiment": "neutral", "awaiting_reply_from": "user", "hours_waiting": 2, "decided_facts": ["Portal closes 2 Dec 11:59pm"], "suggested_reply_points": ["Apologise for the delay", "Attach line-by-line feedback", "Offer an evening review call"]},
+      {"thread_id": "TH_502", "message_id": "M802", "lead_id": "L402", "lead_name": "Rokeya Begum", "channel": "WhatsApp", "summary": "Coming at 12; will ask for a refund without a real update.", "sentiment": "negative", "awaiting_reply_from": "user", "hours_waiting": 12, "decided_facts": ["Meeting today 12:00"], "suggested_reply_points": ["Confirm the meeting", "Ask Raisa to bring her attested transcript"]},
+      {"thread_id": "TH_503", "message_id": "M803", "lead_id": "L401", "lead_name": "Tanjim Ahmed", "channel": "Email", "summary": "Sent the father's statement; balance held since 18 November.", "sentiment": "neutral", "awaiting_reply_from": "user", "hours_waiting": 25, "decided_facts": ["Funds held since 18 Nov"], "suggested_reply_points": ["Explain the 28-day rule", "Suggest moving the appointment"]},
+      {"thread_id": "TH_505", "message_id": "M805", "lead_id": "L403", "lead_name": "Nafis Iqbal", "channel": "WhatsApp", "summary": "Asks which college to pay the deposit to before Friday.", "sentiment": "positive", "awaiting_reply_from": "user", "hours_waiting": 12, "decided_facts": ["Deposit deadline Friday"], "suggested_reply_points": ["Confirm the 16:00 call"]},
+      {"thread_id": "TH_507", "message_id": "M807", "lead_id": "L405", "lead_name": "Abrar Hossain", "channel": "Email", "summary": "Post-fair email got no reply.", "sentiment": "neutral", "awaiting_reply_from": "lead", "hours_waiting": 456, "decided_facts": [], "suggested_reply_points": ["Send the program list", "Offer a free session"]}
+    ],
+    "workload_insights": {"meetings_count": 1, "calls_count": 3, "followups_due_today_count": 1, "emails_count": 2, "busiest_hour_range": "10:00-13:00", "free_time_slots": ["13:20-15:00", "15:20-16:00", "16:25-19:00"], "overload_warning": null},
+    "counts": {"at_risk_leads": 4, "overdue": 5, "quick_wins": 3, "prep_items": 2, "note_signals": 4, "open_commitments": 6, "awaiting_your_reply": 4, "total_minutes_planned": 175},
+    "schedule_conflicts": ["12:00 meeting with Mrs. Rokeya (45 min) overlaps the 12:30 Northbridge partner call"],
+    "productivity_tip": "Use the Northbridge partner call to fast-track Raisa - it turns today's hardest meeting into good news.",
+    "call_prep_briefs": []
+  },
+  "agent_metadata": [
+    {"agent": "call_agent[1]", "model": "gpt-4.1-mini", "input_tokens": 6980, "output_tokens": 1720, "total_tokens": 8700, "duration_ms": 18240, "items_analyzed": 6},
+    {"agent": "conversation_agent[1]", "model": "gpt-4.1-mini", "input_tokens": 3420, "output_tokens": 1190, "total_tokens": 4610, "duration_ms": 11320, "items_analyzed": 7},
+    {"agent": "task_agent", "model": "gpt-4.1-mini", "input_tokens": 5610, "output_tokens": 1410, "total_tokens": 7020, "duration_ms": 16880, "items_analyzed": 17},
+    {"agent": "synthesizer", "model": "gpt-4.1-mini", "input_tokens": 9870, "output_tokens": 2290, "total_tokens": 12160, "duration_ms": 16120, "items_analyzed": null}
+  ],
+  "errors": []
+}

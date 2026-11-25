@@ -1,0 +1,33 @@
+{% from "partials/icons.html" import icon %}
+{# CRM AI Planner input: pick a demo CRM (or load your own CRM JSON), preview it, plan the day. Driven by js/planner_input.js #}
+<div class="pl-in" id="plIn" data-live="{{ 'true' if feature.is_live else 'false' }}">
+  <div class="pl-stephead"><span class="pl-step-n">1</span><span>Whose CRM?</span><small class="muted">4 demo industries</small></div>
+  <div class="pl-scns" id="plScenarios" role="radiogroup" aria-label="Demo CRM">
+    <div class="pl-scn-skel"></div><div class="pl-scn-skel"></div><div class="pl-scn-skel"></div><div class="pl-scn-skel"></div>
+  </div>
+
+  <button type="button" class="pl-own" id="plOwnToggle" aria-expanded="false">
+    {{ icon("code", 13) }} <span>Use your own CRM data (JSON)</span>{{ icon("chevron-down", 12) }}
+  </button>
+  <div class="pl-own-box hidden" id="plOwn">
+    {% if not feature.is_live %}<p class="pl-own-note">{{ icon("info", 12) }} Your own data needs the live API. This feature is in demo mode, so only the demo CRMs can be planned.</p>{% endif %}
+    <label class="dropzone pl-drop" id="plDrop">
+      <input type="file" id="plFile" accept=".json,application/json" hidden>
+      {{ icon("upload", 16) }}
+      <span><b>Upload a CRM .json</b> or drop it here<br><small class="muted">Same shape as the API body: tasks, follow-ups, notes, calls, messages</small></span>
+    </label>
+    <textarea id="plJson" class="input pl-json" rows="6" spellcheck="false" placeholder='{"user_name": "…", "today": "2026-09-06", "all_tasks": [ … ], …}'></textarea>
+    <div class="pl-json-bar">
+      <small id="plJsonStat" class="muted">Paste JSON, or start from a template.</small>
+      <span class="pl-json-acts">
+        <button type="button" class="btn btn-ghost btn-sm" id="plTemplate">{{ icon("file", 12) }} Template</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="plDownload" title="Download the selected demo CRM as JSON">{{ icon("download", 12) }}</button>
+      </span>
+    </div>
+  </div>
+
+  <div class="pl-stephead"><span class="pl-step-n">2</span><span>What the AI will read</span></div>
+  <div class="pl-sum" id="plSum"><span class="muted small">Pick a CRM above.</span></div>
+
+  <button class="btn btn-primary btn-block pl-run" id="runBtn" disabled>{{ icon("sparkles", 13) }} <span id="plRunLabel">{{ feature.run_label }}</span></button>
+</div>

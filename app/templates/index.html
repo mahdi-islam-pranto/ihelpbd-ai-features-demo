@@ -5,6 +5,7 @@
 
 {% block content %}
 {% set live = features|selectattr("is_live")|list|length %}
+{% set portals = features|selectattr("is_portal")|list|length %}
 <div class="page-head">
   <div>
     <h1>AI Features Overview</h1>
@@ -15,7 +16,7 @@
 <div class="stat-grid">
   <div class="stat"><span class="stat-icon blue">{{ icon("sparkles", 16) }}</span><div><small>AI features</small><strong>{{ features|length }}</strong></div></div>
   <div class="stat"><span class="stat-icon green">{{ icon("zap", 16) }}</span><div><small>Live APIs</small><strong>{{ live }}</strong></div></div>
-  <div class="stat"><span class="stat-icon red">{{ icon("flask", 16) }}</span><div><small>On demo data</small><strong>{{ features|length - live }}</strong></div></div>
+  <div class="stat"><span class="stat-icon red">{{ icon("flask", 16) }}</span><div><small>On demo data</small><strong>{{ features|length - live - portals }}</strong></div></div>
   <div class="stat"><span class="stat-icon blue">{{ icon("grid", 16) }}</span><div><small>Categories</small><strong>{{ features_by_category()|length }}</strong></div></div>
 </div>
 
@@ -26,17 +27,17 @@
       <thead><tr><th>Feature</th><th>Category</th><th>Input</th><th>Status</th><th></th></tr></thead>
       <tbody>
       {% for f in features %}
-        <tr class="row-link" data-href="/features/{{ f.slug }}">
+        <tr class="row-link" data-href="{{ f.href }}">
           <td>
             <div class="feat-cell">
               <span class="feat-icon">{{ icon(f.icon, 16) }}</span>
-              <div><a href="/features/{{ f.slug }}" class="strong">{{ f.name }}</a><div class="muted">{{ f.tagline }}</div></div>
+              <div><a href="{{ f.href }}" class="strong">{{ f.name }}</a><div class="muted">{{ f.tagline }}</div></div>
             </div>
           </td>
           <td><span class="tag">{{ f.category }}</span></td>
-          <td class="muted nowrap">{{ {"recordings": "Call recording", "crm": "CRM data / form"}.get(f.file_kind, "Form") }}</td>
-          <td><span class="badge badge-{{ f.mode }}">{{ 'Live API' if f.is_live else 'Demo data' }}</span></td>
-          <td class="right"><a href="/features/{{ f.slug }}" class="btn btn-sm btn-outline">Open {{ icon("arrow-right", 12) }}</a></td>
+          <td class="muted nowrap">{{ {"recordings": "Call recording", "crm": "CRM data / form"}.get(f.file_kind, "Chat" if f.icon == "chat" else "Form") }}</td>
+          <td><span class="badge badge-{{ f.mode }}">{{ f.status_label }}</span></td>
+          <td class="right"><a href="{{ f.href }}" class="btn btn-sm btn-outline">Open {{ icon("arrow-right", 12) }}</a></td>
         </tr>
       {% endfor %}
       </tbody>

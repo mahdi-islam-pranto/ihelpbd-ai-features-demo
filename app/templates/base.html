@@ -29,9 +29,9 @@
       {% for category, items in features_by_category().items() %}
       <div class="side-section">{{ category }}</div>
       {% for f in items %}
-      <a href="/features/{{ f.slug }}" class="side-link {% if active == f.slug %}active{% endif %}" title="{{ f.name }}">
+      <a href="{{ f.href }}" class="side-link {% if active == f.slug %}active{% endif %}" title="{{ f.name }}">
         {{ icon(f.icon, 16) }}<span>{{ f.name }}</span>
-        <i class="status-dot {{ f.mode }}" title="{{ 'Live API' if f.is_live else 'Demo data' }}"></i>
+        <i class="status-dot {{ f.mode }}" title="{{ f.status_label }}"></i>
       </a>
       {% endfor %}
       {% endfor %}
@@ -39,8 +39,10 @@
 
     <div class="side-foot">
       {% set live = features|selectattr("is_live")|list|length %}
+      {% set portals = features|selectattr("is_portal")|list|length %}
       <div class="side-foot-row" title="Live APIs"><i class="status-dot live"></i><span>{{ live }} live API{{ '' if live == 1 else 's' }}</span></div>
-      <div class="side-foot-row" title="On demo data"><i class="status-dot demo"></i><span>{{ features|length - live }} on demo data</span></div>
+      <div class="side-foot-row" title="On demo data"><i class="status-dot demo"></i><span>{{ features|length - live - portals }} on demo data</span></div>
+      {% if portals %}<div class="side-foot-row" title="On demo portals"><i class="status-dot portal"></i><span>{{ portals }} on demo portal{{ '' if portals == 1 else 's' }}</span></div>{% endif %}
     </div>
   </aside>
   <div class="sidebar-backdrop" id="sidebarBackdrop"></div>

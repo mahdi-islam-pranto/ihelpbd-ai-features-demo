@@ -12,7 +12,7 @@
   <div class="page-head-main">
     <span class="head-icon">{{ icon(feature.icon, 20) }}</span>
     <div>
-      <h1>{{ feature.name }} <span class="badge badge-{{ feature.mode }}">{{ 'Live API' if feature.is_live else 'Demo data' }}</span></h1>
+      <h1>{{ feature.name }} <span class="badge badge-{{ feature.mode }}">{{ feature.status_label }}</span></h1>
       <p class="muted">{{ feature.tagline }}</p>
     </div>
   </div>

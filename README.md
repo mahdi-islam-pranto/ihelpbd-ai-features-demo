@@ -40,6 +40,7 @@ from the **Saved results** list on each feature page.
   | Call Recording Analysis | `call_analysis_runs` |
   | Call Transcription | `call_transcription_runs` |
 | Lead Finder AI | `lead_finder_runs` (one row per batch; `sources` maps each call to its file/link) |
+| CRM AI Planner | `crm_planner_runs` (`params.crm` keeps the CRM data that was sent) |
 
 * Uploaded recordings are copied to `storage/uploads/<feature>/<yyyy-mm>/` (set `SAVE_UPLOADS=false` to disable).
   For samples, only the file name is stored.
@@ -57,6 +58,7 @@ from the **Saved results** list on each feature page.
 | `sample-call-recordings/` | Call Analysis, Agent QA, Transcription, Lead Finder | mp3, wav, m4a, ogg, flac, webm, aac |
 | `sample-call-recordings/urls.txt` | Transcription and Lead Finder (link samples) | one audio URL per line or comma separated |
 | `sample-crm-datas/` | (not used yet) | csv, xlsx, xls, json |
+| `app/data/crm_planner/` | CRM AI Planner: 4 demo CRMs (SaaS, real estate, logistics, education) + `demo/` responses | json (versioned in git) |
 
 Files you put in these folders appear automatically as one-click samples on the feature pages.
 
@@ -118,3 +120,4 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for setting the portal up on a CentOS / RHEL 
 | Call Center Agent Quality Check | Demo data | – |
 | Call Transcription | Live | [api_docs/call_transcription.md](api_docs/call_transcription.md) |
 | Lead Finder AI | Live | [api_docs/lead_finder.md](api_docs/lead_finder.md) |
+| CRM AI Planner | Live (`token` + `ssh-key` headers) | [api_docs/crm_planner.md](api_docs/crm_planner.md) |
